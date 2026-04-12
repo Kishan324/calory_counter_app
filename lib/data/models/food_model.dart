@@ -1,39 +1,39 @@
 class FoodModel {
-  final String id;
   final String name;
-  final int calories;
+  final double calories;
   final double protein;
+  final double fat;
   final double carbs;
-  final double fats;
+  final double sugar;
 
   FoodModel({
-    required this.id,
     required this.name,
     required this.calories,
-    this.protein = 0.0,
-    this.carbs = 0.0,
-    this.fats = 0.0,
+    required this.protein,
+    required this.fat,
+    required this.carbs,
+    required this.sugar,
   });
 
   factory FoodModel.fromJson(Map<String, dynamic> json) {
     return FoodModel(
-      id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      calories: json['calories'] ?? 0,
-      protein: (json['protein'] ?? 0).toDouble(),
-      carbs: (json['carbs'] ?? 0).toDouble(),
-      fats: (json['fats'] ?? 0).toDouble(),
+      name: json['food'] ?? '',
+
+      // 🔥 SAFE PARSING (VERY IMPORTANT)
+      calories: (json['calories'] as num?)?.toDouble() ?? 0.0,
+      protein: (json['protein'] as num?)?.toDouble() ?? 0.0,
+      fat: (json['fat'] as num?)?.toDouble() ?? 0.0,
+      carbs: (json['carbs'] as num?)?.toDouble() ?? 0.0,
+      sugar: (json['sugar'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'calories': calories,
-      'protein': protein,
-      'carbs': carbs,
-      'fats': fats,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'food': name,
+        'calories': calories,
+        'protein': protein,
+        'fat': fat,
+        'carbs': carbs,
+        'sugar': sugar,
+      };
 }

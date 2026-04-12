@@ -124,9 +124,14 @@ class ApiService {
   }
 
   // POST method
-  Future<Response> post(String endpoint, {dynamic data, Map<String, dynamic>? queryParameters}) async {
+  Future<Response> post(String endpoint, {dynamic data, Map<String, dynamic>? queryParameters, Options? options}) async {
     try {
-      final response = await _dio.post(endpoint, data: data, queryParameters: queryParameters);
+      final response = await _dio.post(
+        endpoint, 
+        data: data, 
+        queryParameters: queryParameters,
+        options: options,
+      );
       return response;
     } catch (e) {
       rethrow;

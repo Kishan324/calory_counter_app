@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/utils/toast_helper.dart';
 import '../data/local/shared_prefs_helper.dart';
@@ -51,22 +52,42 @@ class AuthProvider with ChangeNotifier {
       final response =
           await _authRepository.login(email.trim(), password.trim());
 
-      // Assumed API response format: { "success": true, "message": "...", "token": "..." }
-      if (response['success'] == true && response['token'] != null) {
-        final token = response['token'];
+      if (response['data']['token'] != null) {
+        final String token = response['data']['token'].toString();
+        debugPrint("==== DEBUG PHASE 1: TOKEN RECEIVED ====");
+        debugPrint("API RESPONSE TOKEN: $token");
 
-        // Save token & user state
-        await SharedPrefsHelper.saveToken(token);
+        // Start: Fixed Token Persistence
+        final prefs = await SharedPreferences.getInstance();
+        debugPrint("==== DEBUG PHASE 2: BEFORE SAVE ====");
+        debugPrint("PREPARED KEY: 'auth_token' | VALUE: $token");
+
+        final isSaved = await prefs.setString('auth_token', token);
+        
+        debugPrint("==== DEBUG PHASE 3: AFTER SAVE ====");
+        debugPrint("PREFS.SET_STRING RETURNED SUCCESS?: $isSaved");
+
+        // Verify Data Persistence Instantly
+        final verificationToken = prefs.getString('auth_token');
+        debugPrint("==== DEBUG VERIFICATION ====");
+        debugPrint("READ IMMEDIATELY AFTER SAVE: $verificationToken");
+        // End: Fixed Token Persistence
+
+        // Save auxiliary user state
         await SharedPrefsHelper.saveUserEmail(email);
 
         _isLoggedIn = true;
         _userEmail = email;
 
-        ToastHelper.showSuccess(response['message'] ?? "Login successful!");
+        ToastHelper.showSuccess(response['data']['message'] ?? "Login successful!");
         _setLoading(false);
         return true;
       } else {
-        ToastHelper.showError(response['message'] ?? "Login failed");
+        debugPrint("==== DEBUG FAILURE ====");
+        debugPrint("response['token'] WAS NULL!");
+        debugPrint("FULL RESPONSE: $response");
+        
+        ToastHelper.showError(response['data']['message'] ?? "Login failed");
         _setLoading(false);
         return false;
       }
@@ -105,10 +126,13 @@ class AuthProvider with ChangeNotifier {
       final response = await _authRepository.signup(
           name.trim(), email.trim(), password, confirmPassword);
 
-      if (response['success'] == true) {
+      // Relax validation to check for token directly
+      if (response['token'] != null || response['success'] == true) {
+        final token = response['token'];
+        
         // Auto-login on successful registration if token provided
-        if (response['token'] != null) {
-          await SharedPrefsHelper.saveToken(response['token']);
+        if (token != null) {
+          await SharedPrefsHelper.saveToken(token);
           await SharedPrefsHelper.saveUserEmail(email);
           _isLoggedIn = true;
           _userEmail = email;

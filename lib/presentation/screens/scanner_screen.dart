@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import '../../providers/food_provider.dart';
+import 'food_result_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({Key? key}) : super(key: key);
@@ -16,6 +19,7 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
   bool _isScanning = false;
+  String? _capturedImagePath;
 
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -79,6 +83,10 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
       
       if (!mounted) return;
       
+      setState(() {
+        _capturedImagePath = picture.path;
+      });
+      
       final provider = Provider.of<FoodProvider>(context, listen: false);
       final result = await provider.scanFood(picture.path);
 
@@ -88,8 +96,32 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
         });
 
         if (result != null) {
-          _showResultDialog(result);
+          // Explicitly use FadeTransition to make it unmistakably a NEW screen,
+          // avoiding the visual illusion of an Android slide-up bottom sheet
+          await Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => FoodResultScreen(
+                food: result,
+                imagePath: _capturedImagePath!,
+              ),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              transitionDuration: const Duration(milliseconds: 400),
+            ),
+          );
+          
+          // Resume camera stream if user dismisses the result without action
+          if (mounted) {
+            setState(() {
+              _capturedImagePath = null;
+            });
+          }
         } else if (provider.error != null) {
+          setState(() {
+            _capturedImagePath = null; // Reset on failure
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(provider.error!)),
           );
@@ -99,6 +131,7 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
       if (mounted) {
         setState(() {
           _isScanning = false;
+          _capturedImagePath = null;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error taking picture: $e')),
@@ -107,127 +140,21 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
     }
   }
 
-  void _showResultDialog(dynamic food) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    food.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      '${food.calories} kcal',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildMacroInfo('Protein', '${food.protein}g', Colors.redAccent),
-                  _buildMacroInfo('Carbs', '${food.carbs}g', Colors.blueAccent),
-                  _buildMacroInfo('Fats', '${food.fats}g', Colors.green),
-                ],
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Close bottom sheet
-                    Navigator.pop(context); // Go back to Home
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text('Add to Diary', style: TextStyle(color: Colors.white, fontSize: 16)),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMacroInfo(String label, String value, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Camera Preview
-          if (_isCameraInitialized)
+          // Camera Preview or Frozen Frame
+          if (_capturedImagePath != null)
+            Positioned.fill(
+              child: Image.file(
+                File(_capturedImagePath!),
+                fit: BoxFit.cover,
+              ),
+            )
+          else if (_isCameraInitialized)
             Positioned.fill(
               child: CameraPreview(_cameraController!),
             )
@@ -314,16 +241,7 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
                     Container(
                       padding: const EdgeInsets.only(bottom: 32),
                       child: _isScanning
-                          ? Column(
-                              children: const [
-                                CircularProgressIndicator(color: Colors.white),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Analyzing your food...',
-                                  style: TextStyle(color: Colors.white, fontSize: 16),
-                                )
-                              ],
-                            )
+                          ? const SizedBox(height: 80) // Placed empty to allow overlay focus
                           : GestureDetector(
                               onTap: _captureAndScan,
                               child: Container(
@@ -347,6 +265,54 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
                             ),
                     ),
                   ],
+                ),
+              ),
+            ),
+
+          // Premium Loading Overlay (Shows during API mapping)
+          if (_isScanning && _capturedImagePath != null)
+            Positioned.fill(
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.55),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 64,
+                            height: 64,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3.5,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          const Text(
+                            'Analyzing your food...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Calories • Protein • Carbs • Fats',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -55,15 +55,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     final prefs = await SharedPreferences.getInstance();
     final bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
-    final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final token = prefs.getString('auth_token');
+    final bool isLoggedIn = token != null && token.isNotEmpty;
     final bool appLockEnabled = prefs.getBool('appLock') ?? false;
 
     // Debug logs
-    debugPrint("--- Splash Navigation Debug ---");
-    debugPrint("isFirstTime: $isFirstTime");
-    debugPrint("isLoggedIn: $isLoggedIn");
-    debugPrint("appLockEnabled: $appLockEnabled");
-    debugPrint("-------------------------------");
+    debugPrint("==== DEBUG PHASE 4: SPLASH SCREEN ====");
+    debugPrint("READING 'auth_token': $token");
+    debugPrint("IS LOGGED IN EVALUATION: $isLoggedIn");
+    debugPrint("APP LOCK APP: $appLockEnabled");
+    debugPrint("FIRST TIME: $isFirstTime");
 
     if (!isFirstTime && isLoggedIn && appLockEnabled) {
       final bioService = BiometricService();
@@ -91,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (isFirstTime) {
       targetScreen = const OnboardingScreen();
     } else if (!isLoggedIn) {
-      targetScreen = const MainScreen();
+      targetScreen = const AuthEntryScreen();
     } else {
       targetScreen = const MainScreen();
     }

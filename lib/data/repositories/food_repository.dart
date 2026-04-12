@@ -1,4 +1,6 @@
-import 'dart:async';
+import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 import '../models/food_model.dart';
 import '../services/api_service.dart';
 
@@ -23,13 +25,34 @@ class FoodRepository {
 
   Future<FoodModel> scanFood(String imagePath) async {
     try {
-      // Assuming a POST endpoint that takes the image
-      // For real file uploads, FormData with MultipartFile would be used:
-      // data: FormData.fromMap({'file': await MultipartFile.fromFile(imagePath)})
-      final response = await apiService.post('/scan', data: {
-        'image_path': imagePath,
+      final file = File(imagePath);
+      final bool fileExists = await file.exists();
+      final String fileName = imagePath.split('/').last;
+
+      print('--- DEBUG IMAGE UPLOAD ---');
+      print('PATH: $imagePath');
+      print('EXISTS: $fileExists');
+      print('FILENAME: $fileName');
+
+      final formData = FormData.fromMap({
+        'image': [
+          await MultipartFile.fromFile(
+            imagePath,
+            filename: fileName,
+            // Depending on Dio version, Use DioMediaType if MediaType fails
+            contentType: MediaType('image', 'jpeg'),
+          )
+        ]
       });
-      
+
+      final response = await apiService.post(
+        '/analyze-food',
+        data: formData,
+        options: Options(
+          contentType: Headers.multipartFormDataContentType,
+        ),
+      );
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return FoodModel.fromJson(response.data);
       } else {
