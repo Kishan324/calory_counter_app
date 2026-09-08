@@ -84,5 +84,22 @@
   "retry": "पुनः प्रयास करें",
   "history": "इतिहास",
   "historyToday": "आज",
-  "noHistoryFound": "{date} के लिए कोई इतिहास नहीं मिला"
+  "noHistoryFound": "{date} के लिए कोई इतिहास नहीं मिला",
+  "editProfile": "प्रोफ़ाइल संपादित करें",
+  "selectImageSource": "छवि स्रोत चुनें",
+  "camera": "कैमरा",
+  "gallery": "गैलरी",
+  "weightGoalTitle": "लक्ष्य वजन",
+  "weightGoalSubtitle": "अपनी प्रगति को ट्रैक करने में हमारी मदद के लिए अपना लक्ष्य वजन निर्धारित करें।",
+  "dailyCaloriesTitle": "दैनिक कैलोरी लक्ष्य",
+  "dailyCaloriesSubtitle": "अपनी ऊर्जा आवश्यकताओं से मेल खाने के लिए अपने दैनिक कैलोरी बजट को समायोजित करें।",
+  "profileUpdated": "प्रोफ़ाइल सफलतापूर्वक अपडेट की गई!",
+  "weightGoalUpdated": "वजन लक्ष्य सफलतापूर्वक अपडेट किया गया!",
+  "dailyCaloriesUpdated": "दैनिक कैलोरी सफलतापूर्वक अपडेट की गई!",
+  "invalidName": "कृपया एक मान्य नाम दर्ज करें",
+  "invalidWeight": "कृपया एक मान्य वजन लक्ष्य दर्ज करें",
+  "invalidCalories": "कृपया एक मान्य दैनिक कैलोरी लक्ष्य दर्ज करें",
+  "errorLoadingProfile": "प्रोफ़ाइल लोड करने में विफल",
+  "saving": "सहेज रहा है...",
+  "save": "सहेजें"
 }

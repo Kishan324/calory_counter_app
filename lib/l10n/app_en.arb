@@ -92,5 +92,22 @@
         "example": "22 March, 2026"
       }
     }
-  }
+  },
+  "editProfile": "Edit Profile",
+  "selectImageSource": "Select Profile Photo",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "weightGoalTitle": "Target Weight",
+  "weightGoalSubtitle": "Set your target weight to help us track your progress.",
+  "dailyCaloriesTitle": "Daily Calorie Target",
+  "dailyCaloriesSubtitle": "Adjust your daily calorie budget to match your energy needs.",
+  "profileUpdated": "Profile updated successfully!",
+  "weightGoalUpdated": "Weight goal updated successfully!",
+  "dailyCaloriesUpdated": "Daily calories updated successfully!",
+  "invalidName": "Please enter a valid name",
+  "invalidWeight": "Please enter a valid weight goal",
+  "invalidCalories": "Please enter a valid daily calorie target",
+  "errorLoadingProfile": "Failed to load profile",
+  "saving": "Saving...",
+  "save": "Save"
 }

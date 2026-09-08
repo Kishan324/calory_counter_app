@@ -15,6 +15,8 @@ import 'providers/onboarding_provider.dart';
 import 'providers/auth_provider.dart';
 import 'data/repositories/auth_repository.dart';
 import 'providers/history_provider.dart';
+import 'data/repositories/profile_repository.dart';
+import 'providers/profile_provider.dart';
 import 'presentation/screens/splash_screen.dart';
 
 void main() async {
@@ -26,6 +28,7 @@ void main() async {
   final apiService = ApiService();
   final foodRepository = FoodRepository(apiService);
   final authRepository = AuthRepository(apiService);
+  final profileRepository = ProfileRepository(apiService);
 
   runApp(
     MultiProvider(
@@ -37,6 +40,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => OnboardingProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider(authRepository)),
         ChangeNotifierProvider(create: (_) => HistoryProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => ProfileProvider(profileRepository)),
       ],
       child: MyApp(savedTheme: savedTheme),
     ),

@@ -13,28 +13,44 @@ class FoodResultScreen extends StatelessWidget {
 
   String _formatFoodName(String name) {
     if (name.isEmpty) return name;
-    return name.split(' ').map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}' : '').join(' ');
+    return name
+        .split(' ')
+        .map((w) => w.isNotEmpty
+            ? '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}'
+            : '')
+        .join(' ');
   }
 
   @override
   Widget build(BuildContext context) {
     // Extract details safely
     Map<String, dynamic> foodMap = {};
-    try { foodMap = food.toJson(); } catch (_) {
-      try { foodMap = Map<String, dynamic>.from(food); } catch (_) {}
+    try {
+      foodMap = food.toJson();
+    } catch (_) {
+      try {
+        foodMap = Map<String, dynamic>.from(food);
+      } catch (_) {}
     }
 
-    final String rawName = (foodMap['name'] ?? food.name ?? 'Unknown Food').toString();
+    final String rawName =
+        (foodMap['name'] ?? food.name ?? 'Unknown Food').toString();
     final String foodName = _formatFoodName(rawName);
-    
+
     final num caloriesRaw = foodMap['calories'] ?? food.calories ?? 0;
     final int calories = caloriesRaw.round();
     final double protein = (foodMap['protein'] as num?)?.toDouble() ?? 0.0;
     final double carbs = (foodMap['carbs'] as num?)?.toDouble() ?? 0.0;
-    final double fats = (foodMap['fats'] as num?)?.toDouble() ?? (foodMap['fat'] as num?)?.toDouble() ?? 0.0;
-    
+    final double fats = (foodMap['fats'] as num?)?.toDouble() ??
+        (foodMap['fat'] as num?)?.toDouble() ??
+        0.0;
+
     double sugar = 1.24;
-    try { sugar = (foodMap['sugar'] as num?)?.toDouble() ?? (food.sugar as num?)?.toDouble() ?? 1.24; } catch (_) {}
+    try {
+      sugar = (foodMap['sugar'] as num?)?.toDouble() ??
+          (food.sugar as num?)?.toDouble() ??
+          1.24;
+    } catch (_) {}
 
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -53,7 +69,7 @@ class FoodResultScreen extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          
+
           // Image Gradient Overlay for legibility
           Positioned(
             top: 0,
@@ -78,7 +94,8 @@ class FoodResultScreen extends StatelessWidget {
 
           // C: Main Content Screen (Anchored to fill the bottom area)
           Positioned(
-            top: screenHeight * 0.45 - 32, // Overlaps the image slightly by 32px
+            top:
+                screenHeight * 0.45 - 32, // Overlaps the image slightly by 32px
             left: 0,
             right: 0,
             bottom: 0,
@@ -95,7 +112,8 @@ class FoodResultScreen extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(32)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.15),
@@ -106,12 +124,13 @@ class FoodResultScreen extends StatelessWidget {
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(32)),
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(
-                      left: 24, 
-                      right: 24, 
-                      top: 32, 
+                      left: 24,
+                      right: 24,
+                      top: 32,
                       bottom: MediaQuery.of(context).padding.bottom + 40,
                     ),
                     physics: const BouncingScrollPhysics(),
@@ -122,22 +141,26 @@ class FoodResultScreen extends StatelessWidget {
                         Text(
                           foodName,
                           style: const TextStyle(
-                            fontSize: 32,
+                            fontSize: 25,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
                             height: 1.2,
                           ),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         // E: Calories Highlight Card
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 15, horizontal: 24),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
                                 Theme.of(context).colorScheme.primary,
-                                Theme.of(context).colorScheme.primary.withAlpha(200),
+                                Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withAlpha(200),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -145,7 +168,10 @@ class FoodResultScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(28),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.35),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -174,7 +200,10 @@ class FoodResultScreen extends StatelessWidget {
                                           color: Colors.white.withOpacity(0.2),
                                           shape: BoxShape.circle,
                                         ),
-                                        child: const Icon(Icons.local_fire_department_rounded, color: Colors.orangeAccent, size: 16),
+                                        child: const Icon(
+                                            Icons.local_fire_department_rounded,
+                                            color: Colors.orangeAccent,
+                                            size: 16),
                                       ),
                                       const SizedBox(width: 8),
                                       const Text(
@@ -196,19 +225,19 @@ class FoodResultScreen extends StatelessWidget {
                                     '$calories',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 42,
+                                      fontSize: 35,
                                       fontWeight: FontWeight.w900,
                                       height: 1,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
                                   const Padding(
-                                    padding: EdgeInsets.only(bottom: 6),
+                                    padding: EdgeInsets.only(bottom: 3),
                                     child: Text(
                                       'kcal',
                                       style: TextStyle(
                                         color: Colors.white70,
-                                        fontSize: 18,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -233,10 +262,26 @@ class FoodResultScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildMacroCard(context, 'Protein', protein, Colors.redAccent.shade400, Icons.fitness_center_rounded),
-                            _buildMacroCard(context, 'Carbs', carbs, Colors.blueAccent.shade400, Icons.bolt_rounded),
-                            _buildMacroCard(context, 'Fat', fats, Colors.orangeAccent.shade400, Icons.water_drop_rounded),
-                            _buildMacroCard(context, 'Sugar', sugar, Colors.purpleAccent.shade400, Icons.cookie_rounded),
+                            _buildMacroCard(
+                                context,
+                                'Protein',
+                                protein,
+                                Colors.redAccent.shade400,
+                                Icons.fitness_center_rounded),
+                            _buildMacroCard(context, 'Carbs', carbs,
+                                Colors.blueAccent.shade400, Icons.bolt_rounded),
+                            _buildMacroCard(
+                                context,
+                                'Fat',
+                                fats,
+                                Colors.orangeAccent.shade400,
+                                Icons.water_drop_rounded),
+                            _buildMacroCard(
+                                context,
+                                'Sugar',
+                                sugar,
+                                Colors.purpleAccent.shade400,
+                                Icons.cookie_rounded),
                           ],
                         ),
                         const SizedBox(height: 48),
@@ -249,10 +294,14 @@ class FoodResultScreen extends StatelessWidget {
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 22),
-                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
                             foregroundColor: Colors.white,
                             elevation: 8,
-                            shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                            shadowColor: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.5),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                             ),
@@ -285,7 +334,8 @@ class FoodResultScreen extends StatelessWidget {
                   color: Colors.black.withOpacity(0.3),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                child: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white, size: 20),
               ),
               onPressed: () => Navigator.pop(context),
             ),
@@ -295,18 +345,19 @@ class FoodResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMacroCard(BuildContext context, String label, double value, Color color, IconData icon) {
+  Widget _buildMacroCard(BuildContext context, String label, double value,
+      Color color, IconData icon) {
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark 
+          color: Theme.of(context).brightness == Brightness.dark
               ? color.withOpacity(0.12)
               : color.withOpacity(0.08),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: color.withOpacity(0.2), 
+            color: color.withOpacity(0.2),
             width: 1.5,
           ),
         ),
@@ -328,8 +379,8 @@ class FoodResultScreen extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white54 
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white54
                     : Colors.black54,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

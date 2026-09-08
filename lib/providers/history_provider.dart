@@ -14,111 +14,98 @@ class HistoryProvider with ChangeNotifier {
   List<HistoryModel> _historyList = [];
   bool _isLoading = false;
   String? _errorMessage;
-  
+
   // Track last fetched date string to prevent duplicate API calls
   String? _lastFetchedDateStr;
 
+  int _currentPage = 1;
+  int _lastPage = 1;
+  int _totalItems = 0;
+
   DateTime get selectedDate => _selectedDate;
   List<HistoryModel> get historyList => _historyList;
-  List<HistoryModel> _mockHistoryList = [];
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  int get currentPage => _currentPage;
+  int get lastPage => _lastPage;
+  int get totalItems => _totalItems;
 
   bool isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   List<HistoryModel> get filteredHistory {
-    return _mockHistoryList.where((item) {
-      if (item.createdAt == null) return false;
-      return isSameDay(item.createdAt!, _selectedDate);
-    }).toList();
-  }
-
-  void loadMockData() {
-    final today = DateTime.now();
-    final yesterday = today.subtract(const Duration(days: 1));
-    final twoDaysAgo = today.subtract(const Duration(days: 2));
-
-    _mockHistoryList = [
-      HistoryModel(
-        id: 1,
-        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
-        name: 'Avocado Toast',
-        calories: 320,
-        createdAt: today,
-      ),
-      HistoryModel(
-        id: 2,
-        imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
-        name: 'Greek Salad',
-        calories: 250,
-        createdAt: today,
-      ),
-      HistoryModel(
-        id: 3,
-        imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
-        name: 'Cheeseburger',
-        calories: 680,
-        createdAt: yesterday,
-      ),
-      HistoryModel(
-        id: 4,
-        imageUrl: 'https://images.unsplash.com/photo-1499028344343-cd173ffc68a9?w=400',
-        name: 'Grilled Chicken',
-        calories: 410,
-        createdAt: yesterday,
-      ),
-      HistoryModel(
-        id: 5,
-        imageUrl: 'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=400',
-        name: 'Oatmeal Bowl',
-        calories: 210,
-        createdAt: twoDaysAgo,
-      ),
-    ];
-    
-    _isLoading = false;
-    notifyListeners();
+    return _historyList;
   }
 
   void changeDate(DateTime date) {
     final today = DateTime.now();
     // Prevent future dates
     if (date.isAfter(today) && !isSameDay(date, today)) {
-       return;
+      return;
     }
 
     if (isSameDay(_selectedDate, date)) {
-      return; 
+      return;
     }
-    
+
     _selectedDate = date;
     notifyListeners();
-    // TEMPORARY FOR MOCK TESTING: Do not call API
-    // fetchHistoryByDate(date);
+    fetchHistoryByDate(date);
   }
 
   Future<void> fetchHistoryByDate(DateTime date) async {
     final String dateStr = DateFormat('yyyy-MM-dd').format(date);
-    
+
     // Prevent duplicate calls for the same date
     if (_isLoading && _lastFetchedDateStr == dateStr) return;
-    
+
     _isLoading = true;
     _errorMessage = null;
+    _currentPage = 1;
+    _lastPage = 1;
+    _totalItems = 0;
     _lastFetchedDateStr = dateStr;
     notifyListeners();
 
     try {
-      final response = await _apiService.get('/history?date=$dateStr');
-      
-      if (response.data != null && response.data['success'] == true) {
-        final List<dynamic> data = response.data['data'] ?? [];
-        _historyList = data.map((item) => HistoryModel.fromJson(item)).toList();
+      final response = await _apiService.get('/food-history?date=$dateStr');
+
+      if (response.data != null) {
+        final Map<String, dynamic> responseData =
+            response.data is Map<String, dynamic>
+                ? response.data as Map<String, dynamic>
+                : {'data': response.data};
+
+        final bool isSuccess =
+            responseData['status'] == true || responseData['success'] == true;
+
+        if (isSuccess) {
+          final List<dynamic> data = responseData['data'] ?? [];
+          _historyList =
+              data.map((item) => HistoryModel.fromJson(item)).toList();
+
+          if (responseData['pagination'] != null &&
+              responseData['pagination'] is Map) {
+            final pag = responseData['pagination'];
+            _currentPage = pag['current_page'] is int
+                ? pag['current_page']
+                : int.tryParse(pag['current_page'].toString()) ?? 1;
+            _lastPage = pag['last_page'] is int
+                ? pag['last_page']
+                : int.tryParse(pag['last_page'].toString()) ?? 1;
+            _totalItems = pag['total'] is int
+                ? pag['total']
+                : int.tryParse(pag['total'].toString()) ?? 0;
+          }
+        } else {
+          _errorMessage = responseData['message'] ?? 'Failed to load history';
+          ToastHelper.showError(_errorMessage!);
+          _historyList = [];
+        }
       } else {
-        _errorMessage = response.data['message'] ?? 'Failed to load history';
+        _errorMessage = 'Failed to load history';
         ToastHelper.showError(_errorMessage!);
         _historyList = [];
       }

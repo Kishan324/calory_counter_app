@@ -84,5 +84,22 @@
   "retry": "Reintentar",
   "history": "Historial",
   "historyToday": "Hoy",
-  "noHistoryFound": "No se encontró historial para {date}"
+  "noHistoryFound": "No se encontró historial para {date}",
+  "editProfile": "Editar Perfil",
+  "selectImageSource": "Seleccionar origen de imagen",
+  "camera": "Cámara",
+  "gallery": "Galería",
+  "weightGoalTitle": "Peso Objetivo",
+  "weightGoalSubtitle": "Establece tu peso objetivo para ayudarnos a seguir tu progreso.",
+  "dailyCaloriesTitle": "Objetivo de Calorías Diarias",
+  "dailyCaloriesSubtitle": "Ajusta tu presupuesto diario de calorías para que coincida con tus necesidades energéticas.",
+  "profileUpdated": "¡Perfil actualizado con éxito!",
+  "weightGoalUpdated": "¡Meta de peso actualizada con éxito!",
+  "dailyCaloriesUpdated": "¡Calorías diarias actualizadas con éxito!",
+  "invalidName": "Por favor, introduce un nombre válido",
+  "invalidWeight": "Por favor, introduce una meta de peso válida",
+  "invalidCalories": "Por favor, introduce un objetivo de calorías diarias válido",
+  "errorLoadingProfile": "Error al cargar el perfil",
+  "saving": "Guardando...",
+  "save": "Guardar"
 }

@@ -84,5 +84,22 @@
   "retry": "Réessayer",
   "history": "Historique",
   "historyToday": "Aujourd'hui",
-  "noHistoryFound": "Aucun historique trouvé pour {date}"
+  "noHistoryFound": "Aucun historique trouvé pour {date}",
+  "editProfile": "Modifier le Profil",
+  "selectImageSource": "Sélectionner la Source de l'Image",
+  "camera": "Appareil Photo",
+  "gallery": "Galerie",
+  "weightGoalTitle": "Poids Cible",
+  "weightGoalSubtitle": "Définissez votre poids cible pour nous aider à suivre vos progrès.",
+  "dailyCaloriesTitle": "Objectif de Calories Quotidien",
+  "dailyCaloriesSubtitle": "Ajustez votre budget calorique quotidien selon vos besoins énergétiques.",
+  "profileUpdated": "Profil mis à jour avec succès !",
+  "weightGoalUpdated": "Objectif de poids mis à jour avec succès !",
+  "dailyCaloriesUpdated": "Calories quotidiennes mises à jour avec succès !",
+  "invalidName": "Veuillez entrer un nom valide",
+  "invalidWeight": "Veuillez entrer un objectif de poids valide",
+  "invalidCalories": "Veuillez entrer un objectif de calories quotidien valide",
+  "errorLoadingProfile": "Échec du chargement du profil",
+  "saving": "Enregistrement...",
+  "save": "Enregistrer"
 }

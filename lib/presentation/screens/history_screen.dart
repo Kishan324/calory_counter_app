@@ -21,8 +21,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<HistoryProvider>(context, listen: false);
-      // provider.fetchHistoryByDate(provider.selectedDate); // Disable API for now
-      provider.loadMockData();
+      provider.fetchHistoryByDate(provider.selectedDate);
     });
   }
 

@@ -7,9 +7,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/profile_provider.dart';
 import 'auth/auth_entry_screen.dart';
 import 'language_screen.dart';
 import 'theme_screen.dart';
+import 'edit_profile_screen.dart';
+import 'weight_goal_screen.dart';
+import 'daily_calories_screen.dart';
 import '../../data/services/biometric_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -68,6 +72,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _loadAppLock();
     _checkBiometricAvailability();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileProvider = context.read<ProfileProvider>();
+      if (profileProvider.profile == null) {
+        profileProvider.fetchProfile(silent: false);
+      } else {
+        profileProvider.fetchProfile(silent: true);
+      }
+    });
   }
 
   @override
@@ -76,6 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
     final localeProvider = context.watch<LocaleProvider>();
+    final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -86,23 +99,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: false,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildProfileHeader(context, isDark, loc),
-              SizedBox(height: 28.h),
-              Text(loc.goals, style: theme.textTheme.headlineMedium),
-              SizedBox(height: 14.h),
-              _buildSettingsCard(context, isDark, [
-                _buildSettingsRow(
-                    context, Icons.flag_rounded, loc.weightGoal, '70 kg'),
-                _buildSettingsRow(context, Icons.local_fire_department_rounded,
-                    loc.dailyCalories, '2000 kcal',
-                    isLast: true),
-              ]),
+        child: profileProvider.isLoading && profileProvider.profile == null
+            ? Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                ),
+              )
+            : SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildProfileHeader(context, isDark, loc),
+                    SizedBox(height: 28.h),
+                    Text(loc.goals, style: theme.textTheme.headlineMedium),
+                    SizedBox(height: 14.h),
+                    _buildSettingsCard(context, isDark, [
+                      _buildSettingsRow(
+                        context,
+                        Icons.flag_rounded,
+                        loc.weightGoal,
+                        profileProvider.weightGoal != null
+                            ? '${profileProvider.weightGoal} kg'
+                            : '-- kg',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const WeightGoalScreen()),
+                          );
+                        },
+                      ),
+                      _buildSettingsRow(
+                        context,
+                        Icons.local_fire_department_rounded,
+                        loc.dailyCalories,
+                        profileProvider.dailyCalories != null
+                            ? '${profileProvider.dailyCalories} kcal'
+                            : '-- kcal',
+                        isLast: true,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DailyCaloriesScreen()),
+                          );
+                        },
+                      ),
+                    ]),
               SizedBox(height: 28.h),
               Text(loc.preferences, style: theme.textTheme.headlineMedium),
               SizedBox(height: 14.h),
@@ -318,71 +361,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileHeader(
       BuildContext context, bool isDark, AppLocalizations loc) {
     final theme = Theme.of(context);
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 64.w,
-            width: 64.w,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(isDark ? 0.2 : 0.1),
-              shape: BoxShape.circle,
+    final profileProvider = context.watch<ProfileProvider>();
+
+    String initials = 'U';
+    if (profileProvider.name != null && profileProvider.name!.isNotEmpty) {
+      final parts = profileProvider.name!.trim().split(RegExp(r'\s+'));
+      if (parts.length > 1) {
+        initials = (parts[0][0] + parts[1][0]).toUpperCase();
+      } else {
+        initials = parts[0][0].toUpperCase();
+      }
+    }
+
+    final hasImage = profileProvider.profileImageUrl != null &&
+        profileProvider.profileImageUrl!.isNotEmpty;
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(24.r),
+      child: Container(
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(24.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
-            child: Center(
-              child: Text(
-                'JD',
-                style: TextStyle(
-                  color: theme.colorScheme.primary,
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.bold,
-                ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: 64.w,
+              width: 64.w,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(isDark ? 0.2 : 0.1),
+                shape: BoxShape.circle,
+                image: hasImage
+                    ? DecorationImage(
+                        image: NetworkImage(profileProvider.profileImageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: !hasImage
+                  ? Center(
+                      child: Text(
+                        initials,
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    profileProvider.name ?? loc.name,
+                    style: theme.textTheme.headlineMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    loc.premiumMember,
+                    style: theme.textTheme.bodySmall!
+                        .copyWith(color: theme.colorScheme.secondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'John Doe',
-                  style: theme.textTheme.headlineMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  loc.premiumMember,
-                  style: theme.textTheme.bodySmall!
-                      .copyWith(color: theme.colorScheme.secondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurface.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.edit_rounded,
+                  size: 18.sp, color: theme.colorScheme.onSurface),
             ),
-          ),
-          Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withOpacity(0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.edit_rounded,
-                size: 18.sp, color: theme.colorScheme.onSurface),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
