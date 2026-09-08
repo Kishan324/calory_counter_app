@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/constants/app_storage_keys.dart';
 
 class BiometricService {
   static final BiometricService _instance = BiometricService._internal();
@@ -9,7 +10,7 @@ class BiometricService {
   BiometricService._internal();
 
   final LocalAuthentication _auth = LocalAuthentication();
-  static const String _keyAppLock = 'appLock';
+  static const String _keyAppLock = AppStorageKeys.appLock;
 
   Future<bool> isBiometricAvailable() async {
     try {

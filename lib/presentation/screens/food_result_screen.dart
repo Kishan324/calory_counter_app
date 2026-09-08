@@ -1,5 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_space.dart';
+import '../../core/utils/toast_helper.dart';
+import '../widgets/app_primary_button.dart';
 
 class FoodResultScreen extends StatelessWidget {
   final dynamic food;
@@ -82,9 +94,9 @@ class FoodResultScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.6),
+                    AppColors.black.withOpacity(0.4),
+                    AppColors.transparent,
+                    AppColors.black.withOpacity(0.6),
                   ],
                   stops: const [0.0, 0.5, 1.0],
                 ),
@@ -95,13 +107,13 @@ class FoodResultScreen extends StatelessWidget {
           // C: Main Content Screen (Anchored to fill the bottom area)
           Positioned(
             top:
-                screenHeight * 0.45 - 32, // Overlaps the image slightly by 32px
+                screenHeight * 0.45 - 32.h, // Overlaps the image slightly by 32px
             left: 0,
             right: 0,
             bottom: 0,
             child: TweenAnimationBuilder<double>(
               tween: Tween<double>(begin: 400.0, end: 0.0),
-              duration: const Duration(milliseconds: 600),
+              duration: AppDurations.slow,
               curve: Curves.easeOutCubic,
               builder: (context, value, child) {
                 return Transform.translate(
@@ -113,25 +125,20 @@ class FoodResultScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(32)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                      offset: const Offset(0, -5),
-                    ),
-                  ],
+                      BorderRadius.vertical(top: Radius.circular(AppRadius.radius32)),
+                  boxShadow: AppShadows.header(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
                 ),
                 child: ClipRRect(
                   borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(32)),
+                      BorderRadius.vertical(top: Radius.circular(AppRadius.radius32)),
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(
-                      left: 24,
-                      right: 24,
-                      top: 32,
-                      bottom: MediaQuery.of(context).padding.bottom + 40,
+                      left: AppPadding.padding24,
+                      right: AppPadding.padding24,
+                      top: AppPadding.padding32,
+                      bottom: MediaQuery.of(context).padding.bottom + AppPadding.padding40,
                     ),
                     physics: const BouncingScrollPhysics(),
                     child: Column(
@@ -140,19 +147,19 @@ class FoodResultScreen extends StatelessWidget {
                         // D: Food Title
                         Text(
                           foodName,
-                          style: const TextStyle(
-                            fontSize: 25,
+                          style: GoogleFonts.sora(
+                            fontSize: 25.sp,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
                             height: 1.2,
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const VSpace32(),
 
                         // E: Calories Highlight Card
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 15, horizontal: 24),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 15.h, horizontal: AppPadding.padding24),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -165,17 +172,10 @@ class FoodResultScreen extends StatelessWidget {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(28),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withOpacity(0.35),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
+                            borderRadius: AppRadius.border28,
+                            boxShadow: AppShadows.primaryButton(
+                              Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -183,34 +183,34 @@ class FoodResultScreen extends StatelessWidget {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Total Calories',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 16,
+                                    style: GoogleFonts.inter(
+                                      color: AppColors.white70,
+                                      fontSize: 16.sp,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const VSpace6(),
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(4),
+                                        padding: EdgeInsets.all(AppPadding.padding4),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
+                                          color: AppColors.white.withOpacity(0.2),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
                                             Icons.local_fire_department_rounded,
-                                            color: Colors.orangeAccent,
+                                            color: AppColors.accent,
                                             size: 16),
                                       ),
-                                      const SizedBox(width: 8),
-                                      const Text(
+                                      const HSpace8(),
+                                      Text(
                                         'Estimated Energy',
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 13,
+                                        style: GoogleFonts.inter(
+                                          color: AppColors.white70,
+                                          fontSize: 13.sp,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -223,21 +223,21 @@ class FoodResultScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     '$calories',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 35,
+                                    style: GoogleFonts.sora(
+                                      color: AppColors.white,
+                                      fontSize: 35.sp,
                                       fontWeight: FontWeight.w900,
                                       height: 1,
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  const Padding(
-                                    padding: EdgeInsets.only(bottom: 3),
+                                  const HSpace4(),
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 3),
                                     child: Text(
                                       'kcal',
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 16,
+                                      style: GoogleFonts.inter(
+                                        color: AppColors.white70,
+                                        fontSize: 16.sp,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -247,18 +247,18 @@ class FoodResultScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 40),
+                        const VSpace40(),
 
                         // F: Macronutrients Title & Row
                         Text(
                           'Macronutrients',
-                          style: TextStyle(
-                            fontSize: 20,
+                          style: GoogleFonts.sora(
+                            fontSize: 20.sp,
                             fontWeight: FontWeight.w800,
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const VSpace16(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -266,54 +266,37 @@ class FoodResultScreen extends StatelessWidget {
                                 context,
                                 'Protein',
                                 protein,
-                                Colors.redAccent.shade400,
+                                AppColors.proteinRed,
                                 Icons.fitness_center_rounded),
                             _buildMacroCard(context, 'Carbs', carbs,
-                                Colors.blueAccent.shade400, Icons.bolt_rounded),
+                                AppColors.carbsBlue, Icons.bolt_rounded),
                             _buildMacroCard(
                                 context,
                                 'Fat',
                                 fats,
-                                Colors.orangeAccent.shade400,
+                                AppColors.fatsGreen,
                                 Icons.water_drop_rounded),
                             _buildMacroCard(
                                 context,
                                 'Sugar',
                                 sugar,
-                                Colors.purpleAccent.shade400,
+                                AppColors.sugarPurple,
                                 Icons.cookie_rounded),
                           ],
                         ),
-                        const SizedBox(height: 48),
+                        const VSpace48(),
 
                         // G: CTA Button
-                        ElevatedButton(
+                        AppPrimaryButton(
+                          text: 'Add to Diary',
                           onPressed: () {
-                            Navigator.pop(context); // Close ResultScreen
-                            Navigator.pop(context); // Close ScannerScreen
+                            Get.back(); // Close ResultScreen
+                            Get.back(); // Close ScannerScreen
+                            ToastHelper.showSuccess(
+                              "Logged $foodName to food diary",
+                              title: "Diary Updated",
+                            );
                           },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 22),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            foregroundColor: Colors.white,
-                            elevation: 8,
-                            shadowColor: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withOpacity(0.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: const Text(
-                            'Add to Diary',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
                         ),
                       ],
                     ),
@@ -325,19 +308,19 @@ class FoodResultScreen extends StatelessWidget {
 
           // B: Top Section: Back Button
           Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 8,
+            top: MediaQuery.of(context).padding.top + 8.h,
+            left: 8.w,
             child: IconButton(
               icon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(AppPadding.padding8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
+                  color: AppColors.black.withOpacity(0.3),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white, size: 20),
+                    color: AppColors.white, size: 20),
               ),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Get.back(),
             ),
           ),
         ],
@@ -349,13 +332,13 @@ class FoodResultScreen extends StatelessWidget {
       Color color, IconData icon) {
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+        margin: EdgeInsets.symmetric(horizontal: AppPadding.padding4),
+        padding: EdgeInsets.symmetric(vertical: AppPadding.padding16, horizontal: AppPadding.padding4),
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
               ? color.withOpacity(0.12)
               : color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppRadius.border24,
           border: Border.all(
             color: color.withOpacity(0.2),
             width: 1.5,
@@ -364,25 +347,25 @@ class FoodResultScreen extends StatelessWidget {
         child: Column(
           children: [
             Icon(icon, color: color, size: 20),
-            const SizedBox(height: 12),
+            const VSpace12(),
             Text(
               '${value.toStringAsFixed(1)}g',
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 18,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.w900,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const VSpace4(),
             Text(
               label,
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white54
-                    : Colors.black54,
-                fontSize: 12,
+                    ? AppColors.white54
+                    : AppColors.black54,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),

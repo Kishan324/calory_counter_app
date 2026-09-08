@@ -1,87 +1,45 @@
-import 'dart:io';
-import 'package:dio/dio.dart';
-import 'package:http_parser/http_parser.dart';
+import 'dart:async';
+import '../../core/theme/app_durations.dart';
 import '../models/user_profile.dart';
 import '../services/api_service.dart';
 
+/// Repository managing mock user profile details without active HTTP endpoints.
 class ProfileRepository {
   final ApiService _apiService;
 
   ProfileRepository(this._apiService);
 
+  ApiService get apiService => _apiService;
+
+  static UserProfile _cachedProfile = UserProfile(
+    name: 'Alex Morgan',
+    profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500',
+    weightGoal: 68.5,
+    dailyCalories: 2000,
+  );
+
+  /// Fetch user profile details (simulated mock delay)
   Future<UserProfile> getProfile() async {
-    try {
-      final response = await _apiService.post(
-        '/profile',
-        data: FormData(),
-        options: Options(
-          contentType: Headers.multipartFormDataContentType,
-        ),
-      );
-      if (response.statusCode == 200) {
-        return UserProfile.fromJson(response.data as Map<String, dynamic>);
-      } else {
-        throw Exception("Failed to load profile");
-      }
-    } on DioException catch (e) {
-      throw e.error ?? "Failed to fetch profile details.";
-    } catch (e) {
-      throw "An unexpected error occurred: ${e.toString()}";
-    }
+    await Future.delayed(AppDurations.normal);
+    return _cachedProfile;
   }
 
-  /// Update user profile details (multipart form-data)
+  /// Update user profile details (simulated mock delay)
   Future<UserProfile> updateProfile({
     String? name,
     String? imagePath,
     double? weightGoal,
     int? dailyCalories,
   }) async {
-    try {
-      final Map<String, dynamic> dataMap = {};
+    await Future.delayed(AppDurations.slow);
 
-      if (name != null) {
-        dataMap['name'] = name;
-      }
-      if (weightGoal != null) {
-        dataMap['weight_goal'] = weightGoal;
-      }
-      if (dailyCalories != null) {
-        dataMap['daily_calories'] = dailyCalories;
-      }
+    _cachedProfile = UserProfile(
+      name: name ?? _cachedProfile.name,
+      profileImage: imagePath ?? _cachedProfile.profileImage,
+      weightGoal: weightGoal ?? _cachedProfile.weightGoal,
+      dailyCalories: dailyCalories ?? _cachedProfile.dailyCalories,
+    );
 
-      if (imagePath != null && imagePath.isNotEmpty) {
-        final file = File(imagePath);
-        final bool fileExists = await file.exists();
-        if (fileExists) {
-          final String fileName = imagePath.split('/').last;
-          dataMap['profile_image'] = await MultipartFile.fromFile(
-            imagePath,
-            filename: fileName,
-            contentType: MediaType('image', 'jpeg'),
-          );
-        }
-      }
-
-      final formData = FormData.fromMap(dataMap);
-
-      final response = await _apiService.post(
-        '/profile',
-        data: formData,
-        options: Options(
-          contentType: Headers.multipartFormDataContentType,
-        ),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return UserProfile.fromJson(response.data as Map<String, dynamic>);
-      } else {
-        throw Exception("Failed to update profile");
-      }
-    } on DioException catch (e) {
-      throw e.error ?? "Failed to update profile details.";
-    } catch (e) {
-      throw "An unexpected error occurred: ${e.toString()}";
-    }
+    return _cachedProfile;
   }
 }

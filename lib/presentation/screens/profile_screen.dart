@@ -1,13 +1,22 @@
+import 'dart:io';
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../providers/theme_provider.dart';
-import '../../providers/locale_provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/profile_provider.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_sizes.dart';
+import '../../core/theme/app_space.dart';
+import '../../controllers/theme_controller.dart';
+import '../../controllers/locale_controller.dart';
+import '../../controllers/auth_controller.dart';
+import '../../controllers/profile_controller.dart';
+
 import 'auth/auth_entry_screen.dart';
 import 'language_screen.dart';
 import 'theme_screen.dart';
@@ -16,6 +25,7 @@ import 'weight_goal_screen.dart';
 import 'daily_calories_screen.dart';
 import '../../data/services/biometric_service.dart';
 
+/// User profile configuration screen with settings, goals, preferences, and security lock options.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
@@ -24,6 +34,34 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final RxBool _isEnabled = false.obs;
+  final RxBool _isBiometricAvailable = false.obs;
+
+  late final ProfileController profileController;
+  late final LocaleController localeController;
+  late final ThemeController themeController;
+  late final AuthController authController;
+
+  @override
+  void initState() {
+    super.initState();
+    profileController = Get.find<ProfileController>();
+    localeController = Get.find<LocaleController>();
+    themeController = Get.find<ThemeController>();
+    authController = Get.find<AuthController>();
+
+    _loadAppLock();
+    _checkBiometricAvailability();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (profileController.profile == null) {
+        profileController.fetchProfile(silent: false);
+      } else {
+        profileController.fetchProfile(silent: true);
+      }
+    });
+  }
+
   String _getLanguageName(String code) {
     switch (code) {
       case 'hi':
@@ -39,47 +77,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  String _getThemeName(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light:
-        return 'Light';
-      case ThemeMode.dark:
-        return 'Dark';
-      case ThemeMode.system:
-        return 'System';
+  String _getThemeName(AppThemeType type) {
+    switch (type) {
+      case AppThemeType.system:
+        return 'System Default';
+      case AppThemeType.light:
+        return 'Light (Green)';
+      case AppThemeType.dark:
+        return 'Dark (Teal)';
+      case AppThemeType.mint:
+        return 'Mint Pastel';
+      case AppThemeType.berry:
+        return 'Berry Pink';
+      case AppThemeType.sunset:
+        return 'Sunset Orange';
+      case AppThemeType.ocean:
+        return 'Ocean Blue';
     }
   }
 
-  bool isEnabled = false;
-  bool _isBiometricAvailable = false;
-
   Future<void> _loadAppLock() async {
     final enabled = await BiometricService().isAppLockEnabled();
-    setState(() {
-      isEnabled = enabled;
-    });
+    _isEnabled.value = enabled;
   }
 
   Future<void> _checkBiometricAvailability() async {
     final available = await BiometricService().isBiometricAvailable();
-    setState(() {
-      _isBiometricAvailable = available;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAppLock();
-    _checkBiometricAvailability();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profileProvider = context.read<ProfileProvider>();
-      if (profileProvider.profile == null) {
-        profileProvider.fetchProfile(silent: false);
-      } else {
-        profileProvider.fetchProfile(silent: true);
-      }
-    });
+    _isBiometricAvailable.value = available;
   }
 
   @override
@@ -87,102 +111,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
-    final localeProvider = context.watch<LocaleProvider>();
-    final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(loc.profile, style: theme.textTheme.headlineLarge),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
       ),
       body: SafeArea(
-        child: profileProvider.isLoading && profileProvider.profile == null
-            ? Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-                ),
-              )
-            : SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildProfileHeader(context, isDark, loc),
-                    SizedBox(height: 28.h),
-                    Text(loc.goals, style: theme.textTheme.headlineMedium),
-                    SizedBox(height: 14.h),
-                    _buildSettingsCard(context, isDark, [
-                      _buildSettingsRow(
-                        context,
-                        Icons.flag_rounded,
-                        loc.weightGoal,
-                        profileProvider.weightGoal != null
-                            ? '${profileProvider.weightGoal} kg'
-                            : '-- kg',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const WeightGoalScreen()),
-                          );
-                        },
-                      ),
-                      _buildSettingsRow(
-                        context,
-                        Icons.local_fire_department_rounded,
-                        loc.dailyCalories,
-                        profileProvider.dailyCalories != null
-                            ? '${profileProvider.dailyCalories} kcal'
-                            : '-- kcal',
-                        isLast: true,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const DailyCaloriesScreen()),
-                          );
-                        },
-                      ),
-                    ]),
-              SizedBox(height: 28.h),
-              Text(loc.preferences, style: theme.textTheme.headlineMedium),
-              SizedBox(height: 14.h),
-              _buildSettingsCard(context, isDark, [
-                _buildSettingsRow(context, Icons.notifications_rounded,
-                    loc.notifications, 'On'),
-                _buildSettingsRow(context, Icons.palette_rounded, loc.theme,
-                    _getThemeName(context.watch<ThemeProvider>().themeMode),
-                    onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const ThemeScreen()));
-                }),
-                _buildSettingsRow(context, Icons.language_rounded, loc.language,
-                    _getLanguageName(localeProvider.locale.languageCode),
-                    isLast: true, onTap: () {
-                  Navigator.push(
+        child: Obx(() {
+          if (profileController.isLoading && profileController.profile == null) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: AppPadding.padding24, vertical: AppPadding.padding8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileHeader(context, isDark, loc),
+                const VSpace28(),
+                Text(loc.goals, style: theme.textTheme.headlineMedium),
+                const VSpace14(),
+                _buildSettingsCard(context, isDark, [
+                  _buildSettingsRow(
+                    context,
+                    Icons.flag_rounded,
+                    loc.weightGoal,
+                    profileController.weightGoal != null
+                        ? '${profileController.weightGoal} kg'
+                        : '-- kg',
+                    onTap: () => Get.to(
+                      () => const WeightGoalScreen(),
+                      transition: Transition.rightToLeftWithFade,
+                      duration: const Duration(milliseconds: 320),
+                    ),
+                  ),
+                  _buildSettingsRow(
+                    context,
+                    Icons.local_fire_department_rounded,
+                    loc.dailyCalories,
+                    profileController.dailyCalories != null
+                        ? '${profileController.dailyCalories} kcal'
+                        : '-- kcal',
+                    isLast: true,
+                    onTap: () => Get.to(
+                      () => const DailyCaloriesScreen(),
+                      transition: Transition.rightToLeftWithFade,
+                      duration: const Duration(milliseconds: 320),
+                    ),
+                  ),
+                ]),
+                const VSpace28(),
+                Text(loc.preferences, style: theme.textTheme.headlineMedium),
+                const VSpace14(),
+                _buildSettingsCard(context, isDark, [
+                  _buildSettingsRow(context, Icons.notifications_rounded,
+                      loc.notifications, 'On'),
+                  _buildSettingsRow(context, Icons.palette_rounded, loc.theme,
+                      _getThemeName(themeController.themeType),
+                      onTap: () => Get.to(
+                        () => const ThemeScreen(),
+                        transition: Transition.rightToLeftWithFade,
+                        duration: const Duration(milliseconds: 320),
+                      )),
+                  _buildSettingsRow(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const LanguageScreen()));
-                }),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: theme.colorScheme.onSurface.withOpacity(0.1),
-                  indent: 56.w,
-                  endIndent: 20.w,
-                ),
-                SizedBox(height: 5.h),
-                setAppLock(),
-                SizedBox(height: 10.h),
-              ]),
-              SizedBox(height: 28.h),
-              _buildLogoutButton(context, isDark, loc),
-              SizedBox(height: 110.h),
-            ],
-          ),
-        ),
+                      Icons.language_rounded,
+                      loc.language,
+                      _getLanguageName(localeController.locale.languageCode),
+                      isLast: true,
+                      onTap: () => Get.to(
+                        () => const LanguageScreen(),
+                        transition: Transition.rightToLeftWithFade,
+                        duration: const Duration(milliseconds: 320),
+                      )),
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: theme.colorScheme.onSurface.withOpacity(0.1),
+                    indent: 56.w,
+                    endIndent: 20.w,
+                  ),
+                  const VSpace5(),
+                  setAppLock(),
+                  const VSpace10(),
+                ]),
+                const VSpace28(),
+                _buildLogoutButton(context, isDark, loc),
+                const VSpace110(),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
@@ -192,19 +221,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
     return InkWell(
       onTap: () => _showLogoutConfirmation(context, loc),
-      borderRadius: BorderRadius.circular(24.r),
+      borderRadius: AppRadius.border24,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 20.h),
+        padding: EdgeInsets.symmetric(vertical: AppPadding.padding20),
         decoration: BoxDecoration(
           color: theme.colorScheme.error.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(24.r),
+          borderRadius: AppRadius.border24,
           border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.logout_rounded, color: theme.colorScheme.error),
-            SizedBox(width: 12.w),
+            const HSpace12(),
             Text(
               loc.logout,
               style: theme.textTheme.titleMedium!.copyWith(
@@ -225,21 +254,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: "Logout",
-      barrierColor: Colors.black.withOpacity(0.4),
-      transitionDuration: const Duration(milliseconds: 300),
+      barrierColor: AppColors.black.withOpacity(0.4),
+      transitionDuration: AppDurations.normal,
       pageBuilder: (_, __, ___) {
         return Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            padding: EdgeInsets.symmetric(horizontal: AppPadding.padding24),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(24.r),
+              borderRadius: AppRadius.border24,
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
-                  padding: EdgeInsets.all(24.w),
+                  padding: EdgeInsets.all(AppPadding.padding24),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(24.r),
+                    borderRadius: AppRadius.border24,
                     border: Border.all(
                       color: theme.colorScheme.primary.withOpacity(0.2),
                     ),
@@ -247,9 +276,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // 🔴 Icon
                       Container(
-                        padding: EdgeInsets.all(14.w),
+                        padding: EdgeInsets.all(AppPadding.padding14),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: theme.colorScheme.error.withOpacity(0.1),
@@ -260,10 +288,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           size: 28.sp,
                         ),
                       ),
-
-                      SizedBox(height: 20.h),
-
-                      // 📝 Title
+                      const VSpace20(),
                       Text(
                         loc.logoutConfirmTitle,
                         textAlign: TextAlign.center,
@@ -271,10 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
-                      SizedBox(height: 10.h),
-
-                      // 📄 Message
+                      const VSpace10(),
                       Text(
                         loc.logoutConfirmMessage,
                         textAlign: TextAlign.center,
@@ -282,55 +304,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: theme.colorScheme.onSurface.withOpacity(0.7),
                         ),
                       ),
-
-                      SizedBox(height: 24.h),
-
-                      // 🔘 Buttons
+                      const VSpace24(),
                       Row(
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => Get.back(),
                               style: OutlinedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 14.h),
+                                padding: EdgeInsets.symmetric(vertical: AppPadding.padding14),
                                 side: BorderSide(
                                   color: theme.colorScheme.primary
                                       .withOpacity(0.3),
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14.r),
+                                  borderRadius: AppRadius.border14,
                                 ),
                               ),
                               child: Text(loc.cancel),
                             ),
                           ),
-                          SizedBox(width: 12.w),
+                          const HSpace12(),
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () async {
-                                Navigator.pop(context);
-
-                                await context.read<AuthProvider>().logout();
-
-                                if (!context.mounted) return;
-
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => const AuthEntryScreen()),
-                                  (route) => false,
-                                );
+                                Get.back();
+                                await authController.logout();
+                                Get.offAll(() => const AuthEntryScreen());
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: theme.colorScheme.error,
-                                padding: EdgeInsets.symmetric(vertical: 14.h),
+                                padding: EdgeInsets.symmetric(vertical: AppPadding.padding14),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14.r),
+                                  borderRadius: AppRadius.border14,
                                 ),
                               ),
                               child: Text(
                                 loc.logout,
-                                style: const TextStyle(color: Colors.white),
+                                style: theme.textTheme.labelLarge!.copyWith(
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
@@ -344,8 +357,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
-
-      // ✨ Animation
       transitionBuilder: (_, animation, __, child) {
         return Transform.scale(
           scale: Curves.easeOutBack.transform(animation.value),
@@ -358,14 +369,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  ImageProvider? _getAvatarProvider(String? imageStr) {
+    if (imageStr == null || imageStr.isEmpty) return null;
+    if (imageStr.startsWith('http://') || imageStr.startsWith('https://')) {
+      return NetworkImage(imageStr);
+    }
+    final file = File(imageStr);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+    return null;
+  }
+
   Widget _buildProfileHeader(
       BuildContext context, bool isDark, AppLocalizations loc) {
     final theme = Theme.of(context);
-    final profileProvider = context.watch<ProfileProvider>();
 
     String initials = 'U';
-    if (profileProvider.name != null && profileProvider.name!.isNotEmpty) {
-      final parts = profileProvider.name!.trim().split(RegExp(r'\s+'));
+    if (profileController.name != null && profileController.name!.isNotEmpty) {
+      final parts = profileController.name!.trim().split(RegExp(r'\s+'));
       if (parts.length > 1) {
         initials = (parts[0][0] + parts[1][0]).toUpperCase();
       } else {
@@ -373,41 +395,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
 
-    final hasImage = profileProvider.profileImageUrl != null &&
-        profileProvider.profileImageUrl!.isNotEmpty;
+    final avatarProvider = _getAvatarProvider(profileController.profileImageUrl);
+    final hasImage = avatarProvider != null;
 
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-        );
-      },
-      borderRadius: BorderRadius.circular(24.r),
+      onTap: () => Get.to(
+        () => const EditProfileScreen(),
+        transition: Transition.rightToLeftWithFade,
+        duration: const Duration(milliseconds: 320),
+      ),
+      borderRadius: AppRadius.border24,
       child: Container(
-        padding: EdgeInsets.all(20.w),
+        padding: EdgeInsets.all(AppPadding.padding20),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(24.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          borderRadius: AppRadius.border24,
+          boxShadow: AppShadows.header(isDark),
         ),
         child: Row(
           children: [
             Container(
-              height: 64.w,
-              width: 64.w,
+              height: AppSizes.avatarSizeMd,
+              width: AppSizes.avatarSizeMd,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(isDark ? 0.2 : 0.1),
+                color:
+                    theme.colorScheme.primary.withOpacity(isDark ? 0.2 : 0.1),
                 shape: BoxShape.circle,
                 image: hasImage
                     ? DecorationImage(
-                        image: NetworkImage(profileProvider.profileImageUrl!),
+                        image: avatarProvider,
                         fit: BoxFit.cover,
                       )
                     : null,
@@ -416,7 +432,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ? Center(
                       child: Text(
                         initials,
-                        style: TextStyle(
+                        style: theme.textTheme.headlineMedium!.copyWith(
                           color: theme.colorScheme.primary,
                           fontSize: 22.sp,
                           fontWeight: FontWeight.bold,
@@ -425,18 +441,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     )
                   : null,
             ),
-            SizedBox(width: 16.w),
+            const HSpace16(),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    profileProvider.name ?? loc.name,
+                    profileController.name ?? loc.name,
                     style: theme.textTheme.headlineMedium,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4.h),
+                  const VSpace4(),
                   Text(
                     loc.premiumMember,
                     style: theme.textTheme.bodySmall!
@@ -448,7 +464,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             Container(
-              padding: EdgeInsets.all(8.w),
+              padding: EdgeInsets.all(AppPadding.padding8),
               decoration: BoxDecoration(
                 color: theme.colorScheme.onSurface.withOpacity(0.08),
                 shape: BoxShape.circle,
@@ -468,14 +484,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.03),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        borderRadius: AppRadius.border24,
+        boxShadow: AppShadows.cardSubtle(isDark),
       ),
       child: Column(
         children: children,
@@ -484,37 +494,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget setAppLock() {
-    if (!_isBiometricAvailable) return const SizedBox.shrink();
-    final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 4.w),
-      child: SwitchListTile(
-        title: Text(
-          AppLocalizations.of(context)!.appLock,
-          style: theme.textTheme.bodyLarge,
-        ),
-        secondary: Container(
-          padding: EdgeInsets.all(8.w),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
+    return Obx(() {
+      if (!_isBiometricAvailable.value) return const SizedBox.shrink();
+
+      final theme = Theme.of(context);
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppPadding.padding4),
+        child: SwitchListTile(
+          title: Text(
+            AppLocalizations.of(context)!.appLock,
+            style: theme.textTheme.bodyLarge,
           ),
-          child: Icon(
-            Icons.fingerprint_rounded,
-            color: theme.colorScheme.primary,
-            size: 20.sp,
+          secondary: Container(
+            padding: EdgeInsets.all(AppPadding.padding8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.fingerprint_rounded,
+              color: theme.colorScheme.primary,
+              size: 20.sp,
+            ),
           ),
+          value: _isEnabled.value,
+          activeColor: theme.colorScheme.primary,
+          onChanged: (value) async {
+            await BiometricService().setAppLockEnabled(value);
+            _isEnabled.value = value;
+          },
         ),
-        value: isEnabled,
-        activeColor: theme.colorScheme.primary,
-        onChanged: (value) async {
-          await BiometricService().setAppLockEnabled(value);
-          setState(() {
-            isEnabled = value;
-          });
-        },
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildSettingsRow(
@@ -526,12 +537,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
+            padding: EdgeInsets.symmetric(horizontal: AppPadding.padding20, vertical: AppPadding.padding18),
             child: Row(
               children: [
                 Icon(icon,
                     color: theme.colorScheme.onSurfaceVariant, size: 22.sp),
-                SizedBox(width: 14.w),
+                const HSpace14(),
                 Expanded(
                   child: Text(
                     title,
@@ -546,7 +557,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(width: 8.w),
+                const HSpace8(),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),

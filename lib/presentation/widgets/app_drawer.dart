@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_space.dart';
 import '../screens/history_screen.dart';
 
+/// Navigation drawer for quick access to history records.
 class AppDrawer extends StatelessWidget {
   final bool isHistorySelected;
 
@@ -20,9 +24,9 @@ class AppDrawer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: 24.h),
+            const VSpace24(),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.w),
+              padding: EdgeInsets.symmetric(horizontal: AppPadding.padding24),
               child: Text(
                 l10n.caloryCounter,
                 style: theme.textTheme.headlineMedium?.copyWith(
@@ -31,12 +35,12 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 32.h),
+            const VSpace32(),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.w),
+              padding: EdgeInsets.symmetric(horizontal: AppPadding.padding12),
               child: ListTile(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: AppRadius.border12,
                 ),
                 leading: Icon(
                   Icons.history_rounded,
@@ -52,14 +56,9 @@ class AppDrawer extends StatelessWidget {
                 selected: isHistorySelected,
                 selectedTileColor: theme.colorScheme.primary.withOpacity(0.1),
                 onTap: () {
-                  Navigator.pop(context); // Close the drawer
+                  Get.back();
                   if (!isHistorySelected) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HistoryScreen(),
-                      ),
-                    );
+                    Get.to(() => const HistoryScreen());
                   }
                 },
               ),

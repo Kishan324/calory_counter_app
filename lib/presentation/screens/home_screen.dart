@@ -1,31 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import '../widgets/app_drawer.dart';
-import '../../providers/date_provider.dart';
 
-class HomeScreen extends StatefulWidget {
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_space.dart';
+import '../../core/utils/toast_helper.dart';
+
+import '../widgets/app_drawer.dart';
+import '../../controllers/date_controller.dart';
+import 'scanner_screen.dart';
+
+/// Dashboard home screen showing animated daily nutrition totals and date selection strip.
+class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
+    final dateController = Get.find<DateController>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       drawer: const AppDrawer(isHistorySelected: false),
       appBar: AppBar(
         title: Text(loc.caloryCounter, style: theme.textTheme.headlineMedium),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
       ),
@@ -34,24 +41,59 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppPadding.padding24,
+                vertical: AppPadding.padding8,
+              ),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const DateStripWidget(),
-                  SizedBox(height: 32.h),
+                  const VSpace32(),
                   _buildNutritionCard(context, isDark, loc),
-                  SizedBox(height: 32.h),
+                  const VSpace32(),
                   Text(loc.mealsToday, style: theme.textTheme.headlineMedium),
-                  SizedBox(height: 16.h),
-                  _buildMealSection(context, loc.breakfast, '350',
-                      Icons.breakfast_dining_rounded, isDark, loc),
-                  _buildMealSection(context, loc.lunch, '0',
-                      Icons.lunch_dining_rounded, isDark, loc),
-                  _buildMealSection(context, loc.snacks, '120',
-                      Icons.bakery_dining_rounded, isDark, loc),
-                  _buildMealSection(context, loc.dinner, '0',
-                      Icons.dinner_dining_rounded, isDark, loc),
-                  SizedBox(height: 110.h),
+                  const VSpace16(),
+                  Obx(() {
+                    final data = dateController.currentNutrition;
+
+                    return Column(
+                      children: [
+                        _buildMealSection(
+                          context: context,
+                          title: loc.breakfast,
+                          calories: data.breakfastCalories,
+                          icon: Icons.breakfast_dining_rounded,
+                          isDark: isDark,
+                          loc: loc,
+                        ),
+                        _buildMealSection(
+                          context: context,
+                          title: loc.lunch,
+                          calories: data.lunchCalories,
+                          icon: Icons.lunch_dining_rounded,
+                          isDark: isDark,
+                          loc: loc,
+                        ),
+                        _buildMealSection(
+                          context: context,
+                          title: loc.snacks,
+                          calories: data.snacksCalories,
+                          icon: Icons.bakery_dining_rounded,
+                          isDark: isDark,
+                          loc: loc,
+                        ),
+                        _buildMealSection(
+                          context: context,
+                          title: loc.dinner,
+                          calories: data.dinnerCalories,
+                          icon: Icons.dinner_dining_rounded,
+                          isDark: isDark,
+                          loc: loc,
+                        ),
+                      ],
+                    );
+                  }),
+                  const VSpace110(),
                 ]),
               ),
             ),
@@ -64,187 +106,255 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNutritionCard(
       BuildContext context, bool isDark, AppLocalizations loc) {
     final theme = Theme.of(context);
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(28.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.03),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  loc.dailySummary,
-                  style: theme.textTheme.titleLarge,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+    final dateController = Get.find<DateController>();
+
+    return Obx(() {
+      final nutrition = dateController.currentNutrition;
+
+      return Container(
+        padding: AppPadding.all20,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: AppRadius.border28,
+          boxShadow: AppShadows.header(isDark),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    loc.dailySummary,
+                    style: theme.textTheme.titleLarge,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              Icon(Icons.more_horiz, color: theme.colorScheme.onSurfaceVariant),
-            ],
-          ),
-          SizedBox(height: 24.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+                Icon(Icons.more_horiz, color: theme.colorScheme.onSurfaceVariant),
+              ],
+            ),
+            const VSpace24(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildMacroCircular(
+                  context: context,
+                  title: loc.calories,
+                  nutrition: nutrition,
+                  color: theme.colorScheme.primary,
+                  loc: loc,
+                ),
+                const HSpace24(),
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildMacroBar(
+                        context: context,
+                        title: loc.protein,
+                        current: nutrition.protein,
+                        total: nutrition.totalProtein,
+                        ratio: nutrition.proteinRatio,
+                        color: AppColors.proteinRed,
+                      ),
+                      const VSpace16(),
+                      _buildMacroBar(
+                        context: context,
+                        title: loc.carbs,
+                        current: nutrition.carbs,
+                        total: nutrition.totalCarbs,
+                        ratio: nutrition.carbsRatio,
+                        color: AppColors.carbsBlue,
+                      ),
+                      const VSpace16(),
+                      _buildMacroBar(
+                        context: context,
+                        title: loc.fats,
+                        current: nutrition.fats,
+                        total: nutrition.totalFats,
+                        ratio: nutrition.fatsRatio,
+                        color: AppColors.fatsGreen,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildMacroCircular({
+    required BuildContext context,
+    required String title,
+    required DateNutrition nutrition,
+    required Color color,
+    required AppLocalizations loc,
+  }) {
+    final theme = Theme.of(context);
+
+    return SizedBox(
+      width: 110.w,
+      height: 110.w,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(end: nutrition.calorieRatio),
+        duration: AppDurations.slow,
+        curve: Curves.fastOutSlowIn,
+        builder: (context, animValue, child) {
+          final animatedRemaining =
+              (nutrition.totalCalories - (animValue * nutrition.totalCalories))
+                  .round()
+                  .clamp(0, nutrition.totalCalories);
+
+          return Stack(
+            fit: StackFit.expand,
             children: [
-              _buildMacroCircular(context, loc.calories, 1200, 2000,
-                  theme.colorScheme.primary, loc),
-              SizedBox(width: 24.w),
-              Expanded(
+              CircularProgressIndicator(
+                value: 1.0,
+                strokeWidth: 10,
+                color: theme.colorScheme.onSurface.withOpacity(0.1),
+              ),
+              CircularProgressIndicator(
+                value: animValue,
+                strokeWidth: 10,
+                strokeCap: StrokeCap.round,
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
+              Center(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildMacroBar(
-                        context, loc.protein, 45, 120, const Color(0xFFE57373)),
-                    SizedBox(height: 16.h),
-                    _buildMacroBar(
-                        context, loc.carbs, 150, 250, const Color(0xFF64B5F6)),
-                    SizedBox(height: 16.h),
-                    _buildMacroBar(
-                        context, loc.fats, 30, 65, const Color(0xFF81C784)),
+                    Text(
+                      '$animatedRemaining',
+                      style: theme.textTheme.displayLarge!.copyWith(fontSize: 22.sp),
+                    ),
+                    const VSpace2(),
+                    Text(
+                      loc.kcalLeft,
+                      style: theme.textTheme.labelMedium!.copyWith(fontSize: 9.sp),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildMacroCircular(BuildContext context, String title, int current,
-      int total, Color color, AppLocalizations loc) {
+  Widget _buildMacroBar({
+    required BuildContext context,
+    required String title,
+    required int current,
+    required int total,
+    required double ratio,
+    required Color color,
+  }) {
     final theme = Theme.of(context);
-    final double percent = current / total;
-    return SizedBox(
-      width: 110.w,
-      height: 110.w,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          CircularProgressIndicator(
-            value: 1.0,
-            strokeWidth: 10,
-            color: theme.colorScheme.onSurface.withOpacity(0.1),
-          ),
-          CircularProgressIndicator(
-            value: percent,
-            strokeWidth: 10,
-            strokeCap: StrokeCap.round,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: ratio),
+      duration: AppDurations.slow,
+      curve: Curves.fastOutSlowIn,
+      builder: (context, animValue, child) {
+        final animatedCurrent = (animValue * total).round().clamp(0, total);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${total - current}',
-                  style:
-                      theme.textTheme.displayLarge!.copyWith(fontSize: 22.sp),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                SizedBox(height: 2.h),
-                Text(
-                  loc.kcalLeft,
-                  style: theme.textTheme.labelMedium!.copyWith(fontSize: 9.sp),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '$animatedCurrent',
+                        style: theme.textTheme.labelMedium!.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' / $total g',
+                        style: theme.textTheme.labelMedium,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMacroBar(
-      BuildContext context, String title, int current, int total, Color color) {
-    final theme = Theme.of(context);
-    final double percent = current / total;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(
-              child: Text(
-                title,
-                style: theme.textTheme.titleMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                      text: '$current',
-                      style: theme.textTheme.labelMedium!.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: theme.colorScheme.onSurface)),
-                  TextSpan(
-                      text: ' / $total g', style: theme.textTheme.labelMedium),
-                ],
+            const VSpace6(),
+            ClipRRect(
+              borderRadius: AppRadius.border6,
+              child: LinearProgressIndicator(
+                value: animValue,
+                backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                minHeight: 7.h,
               ),
             ),
           ],
-        ),
-        SizedBox(height: 6.h),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6.r),
-          child: LinearProgressIndicator(
-            value: percent,
-            backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 7.h,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildMealSection(BuildContext context, String title, String calories,
-      IconData icon, bool isDark, AppLocalizations loc) {
+  Widget _buildMealSection({
+    required BuildContext context,
+    required String title,
+    required int calories,
+    required IconData icon,
+    required bool isDark,
+    required AppLocalizations loc,
+  }) {
     final theme = Theme.of(context);
+
     return Container(
-      margin: EdgeInsets.only(bottom: 14.h),
+      margin: EdgeInsets.only(bottom: AppPadding.padding14),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.02),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        borderRadius: AppRadius.border24,
+        boxShadow: AppShadows.cardSubtle(isDark),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: AppColors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(24.r),
-          onTap: () {},
+          borderRadius: AppRadius.border24,
+          onTap: () {
+            ToastHelper.showInfo(
+              "Opening scanner to log $title",
+              title: title,
+            );
+            Get.to(() => const ScannerScreen());
+          },
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppPadding.padding16,
+              vertical: AppPadding.padding20,
+            ),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(12.w),
+                  padding: AppPadding.all12,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary
                         .withOpacity(isDark ? 0.15 : 0.08),
-                    borderRadius: BorderRadius.circular(16.r),
+                    borderRadius: AppRadius.border16,
                   ),
                   child: Icon(
                     icon,
@@ -252,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     size: 24.sp,
                   ),
                 ),
-                SizedBox(width: 14.w),
+                const HSpace14(),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 4.h),
+                      const VSpace4(),
                       Text(
                         loc.tapToAddFood,
                         style: theme.textTheme.labelMedium,
@@ -276,19 +386,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      calories,
-                      style: theme.textTheme.displayMedium!
-                          .copyWith(color: theme.colorScheme.onSurface),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(end: calories.toDouble()),
+                      duration: AppDurations.slow,
+                      curve: Curves.fastOutSlowIn,
+                      builder: (context, animCal, child) {
+                        return Text(
+                          '${animCal.round()}',
+                          style: theme.textTheme.displayMedium!
+                              .copyWith(color: theme.colorScheme.onSurface),
+                        );
+                      },
                     ),
-                    SizedBox(height: 2.h),
+                    const VSpace2(),
                     Text(
                       loc.kcal,
                       style: theme.textTheme.labelMedium,
                     ),
                   ],
                 ),
-                SizedBox(width: 10.w),
+                const HSpace10(),
                 Icon(
                   Icons.add_circle_rounded,
                   color: theme.colorScheme.primary,
@@ -303,38 +420,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class DateStripWidget extends StatefulWidget {
+class DateStripWidget extends StatelessWidget {
   const DateStripWidget({Key? key}) : super(key: key);
 
   @override
-  State<DateStripWidget> createState() => _DateStripWidgetState();
-}
-
-class _DateStripWidgetState extends State<DateStripWidget> {
-  late final List<DateTime> _dates;
-
-  @override
-  void initState() {
-    super.initState();
+  Widget build(BuildContext context) {
     final today = DateTime.now();
-    _dates = List.generate(7, (index) {
+    final dates = List.generate(7, (index) {
       return today.subtract(Duration(days: 6 - index));
     });
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return SizedBox(
       height: 95.h,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(_dates.length * 2 - 1, (i) {
+        children: List.generate(dates.length * 2 - 1, (i) {
           if (i.isOdd) {
-            return SizedBox(width: 5.w);
+            return const HSpace5();
           }
 
           final index = i ~/ 2;
-          final date = _dates[index];
+          final date = dates[index];
           final weekDayLabel =
               DateFormat.E(Localizations.localeOf(context).toString())
                   .format(date);
@@ -369,86 +475,81 @@ class _DateItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final dateController = Get.find<DateController>();
 
-    return Selector<DateProvider, bool>(
-      selector: (context, provider) => provider.selectedIndex == index,
-      builder: (context, isSelected, child) {
-        return GestureDetector(
-          onTap: () {
-            final provider = context.read<DateProvider>();
-            if (provider.selectedIndex != index) {
-              provider.setSelectedIndex(index);
-            }
-          },
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 1),
-            curve: Curves.easeInOut,
-            padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 2.w),
-            decoration: BoxDecoration(
-              color:
-                  isSelected ? theme.colorScheme.surface : Colors.transparent,
-              borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(
-                color: isSelected
-                    ? Colors.transparent
-                    : theme.colorScheme.onSurface
-                        .withOpacity(isDark ? 0.2 : 0.12),
-                width: 1,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      )
-                    ]
-                  : [],
+    return Obx(() {
+      final isSelected = dateController.selectedIndex == index;
+
+      return GestureDetector(
+        onTap: () => dateController.setSelectedIndex(index),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: AppDurations.normal,
+          curve: Curves.fastOutSlowIn,
+          padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 2.w),
+          decoration: BoxDecoration(
+            color: isSelected ? theme.colorScheme.surface : AppColors.transparent,
+            borderRadius: AppRadius.border14,
+            border: Border.all(
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurface
+                      .withOpacity(isDark ? 0.2 : 0.12),
+              width: isSelected ? 1.5 : 1,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  height: 26.w,
-                  width: 26.w,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withOpacity(0.05),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      weekDayLabel.substring(0, 1),
-                      style: theme.textTheme.labelMedium!.copyWith(
-                        color: isSelected
-                            ? theme.colorScheme.surface
-                            : theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 9.sp,
-                      ),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? AppColors.black.withOpacity(isDark ? 0.3 : 0.04)
+                    : AppColors.transparent,
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: AppDurations.normal,
+                curve: Curves.fastOutSlowIn,
+                height: 26.w,
+                width: 26.w,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface.withOpacity(0.05),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    weekDayLabel.substring(0, 1),
+                    style: theme.textTheme.labelMedium!.copyWith(
+                      color: isSelected
+                          ? theme.colorScheme.surface
+                          : theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 9.sp,
                     ),
                   ),
                 ),
-                SizedBox(height: 4.h),
-                Text(
-                  '${date.day}',
-                  style: theme.textTheme.displayMedium!.copyWith(
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14.sp,
-                  ),
+              ),
+              const VSpace4(),
+              Text(
+                '${date.day}',
+                style: theme.textTheme.displayMedium!.copyWith(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14.sp,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
   }
 }

@@ -1,35 +1,34 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import '../../providers/profile_provider.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_sizes.dart';
+import '../../core/theme/app_space.dart';
+import '../widgets/app_primary_button.dart';
+import '../../controllers/profile_controller.dart';
+import '../../controllers/edit_profile_controller.dart';
 
-class EditProfileScreen extends StatefulWidget {
+/// User profile edit screen allowing name changes and avatar upload using GetX.
+class EditProfileScreen extends StatelessWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
 
-  @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
-}
-
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  late final TextEditingController _nameController;
-  final _formKey = GlobalKey<FormState>();
-  String? _localImagePath;
-
-  @override
-  void initState() {
-    super.initState();
-    final profileProvider = context.read<ProfileProvider>();
-    _nameController = TextEditingController(text: profileProvider.name ?? '');
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
+  ImageProvider? _getAvatarProvider(String? imageStr) {
+    if (imageStr == null || imageStr.isEmpty) return null;
+    if (imageStr.startsWith('http://') || imageStr.startsWith('https://')) {
+      return NetworkImage(imageStr);
+    }
+    final file = File(imageStr);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+    return null;
   }
 
   String _getInitials(String? name) {
@@ -41,44 +40,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return parts[0][0].toUpperCase();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: source,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _localImagePath = pickedFile.path;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error picking image: $e");
-    }
-  }
-
-  void _showImageSourceSelector(BuildContext context, AppLocalizations loc) {
+  void _showImageSourceSelector(BuildContext context, AppLocalizations loc, EditProfileController controller) {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24.r),
-              topRight: Radius.circular(24.r),
+              topLeft: Radius.circular(AppRadius.radius24),
+              topRight: Radius.circular(AppRadius.radius24),
             ),
             border: Border.all(
               color: theme.colorScheme.primary.withOpacity(0.1),
             ),
           ),
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+          padding: EdgeInsets.all(AppPadding.padding24),
           child: SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -89,7 +68,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 24.h),
+                const VSpace24(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -98,8 +77,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       icon: Icons.camera_alt_rounded,
                       label: loc.camera,
                       onTap: () {
-                        Navigator.pop(context);
-                        _pickImage(ImageSource.camera);
+                        Get.back();
+                        controller.pickImage(ImageSource.camera);
                       },
                     ),
                     _buildSourceOption(
@@ -107,8 +86,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       icon: Icons.photo_library_rounded,
                       label: loc.gallery,
                       onTap: () {
-                        Navigator.pop(context);
-                        _pickImage(ImageSource.gallery);
+                        Get.back();
+                        controller.pickImage(ImageSource.gallery);
                       },
                     ),
                   ],
@@ -130,13 +109,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: AppRadius.border16,
       child: Container(
         width: 120.w,
-        padding: EdgeInsets.symmetric(vertical: 16.h),
+        padding: EdgeInsets.symmetric(vertical: AppPadding.padding16),
         decoration: BoxDecoration(
           color: theme.colorScheme.primary.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: AppRadius.border16,
           border: Border.all(
             color: theme.colorScheme.primary.withOpacity(0.1),
           ),
@@ -148,7 +127,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               color: theme.colorScheme.primary,
               size: 32.sp,
             ),
-            SizedBox(height: 8.h),
+            const VSpace8(),
             Text(
               label,
               style: theme.textTheme.bodyMedium!.copyWith(
@@ -162,43 +141,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Future<void> _submitForm(AppLocalizations loc) async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final name = _nameController.text.trim();
-    final profileProvider = context.read<ProfileProvider>();
-
-    final success = await profileProvider.updateProfileDetails(
-      name: name,
-      imagePath: _localImagePath,
-      successMessage: loc.profileUpdated,
-    );
-
-    if (success && mounted) {
-      Navigator.pop(context);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
-    final profileProvider = context.watch<ProfileProvider>();
 
-    ImageProvider? avatarImage;
-    if (_localImagePath != null) {
-      avatarImage = FileImage(File(_localImagePath!));
-    } else if (profileProvider.profileImageUrl != null &&
-        profileProvider.profileImageUrl!.isNotEmpty) {
-      avatarImage = NetworkImage(profileProvider.profileImageUrl!);
-    }
+    final controller = Get.put(EditProfileController());
+    final profileController = Get.find<ProfileController>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(loc.editProfile, style: theme.textTheme.headlineMedium),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -206,56 +162,66 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.all(24.w),
+          padding: EdgeInsets.all(AppPadding.padding24),
           child: Form(
-            key: _formKey,
+            key: controller.formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 20.h),
-                // Premium Profile Photo Selector
+                const VSpace20(),
                 Center(
                   child: Stack(
                     children: [
-                      Container(
-                        height: 120.w,
-                        width: 120.w,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: theme.colorScheme.primary.withOpacity(isDark ? 0.2 : 0.1),
-                          border: Border.all(
-                            color: theme.colorScheme.primary.withOpacity(0.3),
-                            width: 3,
+                      Obx(() {
+                        ImageProvider? avatarImage;
+                        final localPath = controller.localImagePath.value;
+
+                        if (localPath != null && localPath.isNotEmpty) {
+                          avatarImage = _getAvatarProvider(localPath);
+                        }
+                        avatarImage ??= _getAvatarProvider(profileController.profileImageUrl);
+
+                        return Container(
+                          height: AppSizes.avatarSizeLg,
+                          width: AppSizes.avatarSizeLg,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: theme.colorScheme.primary
+                                .withOpacity(isDark ? 0.2 : 0.1),
+                            border: Border.all(
+                              color: theme.colorScheme.primary.withOpacity(0.3),
+                              width: 3,
+                            ),
+                            image: avatarImage != null
+                                ? DecorationImage(
+                                    image: avatarImage,
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
                           ),
-                          image: avatarImage != null
-                              ? DecorationImage(
-                                  image: avatarImage,
-                                  fit: BoxFit.cover,
+                          child: avatarImage == null
+                              ? Center(
+                                  child: Text(
+                                    _getInitials(controller.nameController.text.isNotEmpty
+                                        ? controller.nameController.text
+                                        : profileController.name),
+                                    style: theme.textTheme.headlineLarge!.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      fontSize: 38.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 )
                               : null,
-                        ),
-                        child: avatarImage == null
-                            ? Center(
-                                child: Text(
-                                  _getInitials(_nameController.text.isNotEmpty
-                                      ? _nameController.text
-                                      : profileProvider.name),
-                                  style: TextStyle(
-                                    color: theme.colorScheme.primary,
-                                    fontSize: 38.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              )
-                            : null,
-                      ),
+                        );
+                      }),
                       Positioned(
                         bottom: 0,
                         right: 0,
                         child: GestureDetector(
-                          onTap: () => _showImageSourceSelector(context, loc),
+                          onTap: () => _showImageSourceSelector(context, loc, controller),
                           child: Container(
-                            padding: EdgeInsets.all(8.w),
+                            padding: EdgeInsets.all(AppPadding.padding8),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.primary,
                               shape: BoxShape.circle,
@@ -263,18 +229,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 color: theme.scaffoldBackgroundColor,
                                 width: 2,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                              boxShadow: AppShadows.cardSubtle(isDark),
                             ),
                             child: Icon(
                               Icons.camera_alt_rounded,
                               size: 18.sp,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                         ),
@@ -282,102 +242,78 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 36.h),
-                // Full Name Input
-                TextFormField(
-                  controller: _nameController,
-                  textCapitalization: TextCapitalization.words,
-                  style: theme.textTheme.bodyLarge,
-                  decoration: InputDecoration(
-                    labelText: loc.name,
-                    labelStyle: theme.textTheme.bodyMedium!.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    floatingLabelStyle: TextStyle(color: theme.colorScheme.primary),
-                    prefixIcon: Icon(Icons.person_outline_rounded,
-                        color: theme.colorScheme.onSurfaceVariant),
-                    suffixIcon: _nameController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear_rounded),
-                            onPressed: () {
-                              setState(() {
-                                _nameController.clear();
-                              });
-                            },
-                          )
-                        : null,
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
-                      borderSide: BorderSide(
-                        color: theme.colorScheme.onSurface.withOpacity(0.1),
+                const VSpace36(),
+                GetBuilder<EditProfileController>(
+                  builder: (ctrl) {
+                    return TextFormField(
+                      controller: ctrl.nameController,
+                      textCapitalization: TextCapitalization.words,
+                      style: theme.textTheme.bodyLarge,
+                      decoration: InputDecoration(
+                        labelText: loc.name,
+                        labelStyle: theme.textTheme.bodyMedium!.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        floatingLabelStyle:
+                            theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.primary),
+                        prefixIcon: Icon(Icons.person_outline_rounded,
+                            color: theme.colorScheme.onSurfaceVariant),
+                        suffixIcon: ctrl.nameController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded),
+                                onPressed: ctrl.clearName,
+                              )
+                            : null,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: AppRadius.border16,
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.onSurface.withOpacity(0.1),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: AppRadius.border16,
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: AppRadius.border16,
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: AppRadius.border16,
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.error,
+                            width: 2,
+                          ),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: AppPadding.padding20, vertical: AppPadding.padding18),
                       ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
-                      borderSide: BorderSide(
-                        color: theme.colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
-                      borderSide: BorderSide(
-                        color: theme.colorScheme.error,
-                      ),
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
-                      borderSide: BorderSide(
-                        color: theme.colorScheme.error,
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
-                  ),
-                  onChanged: (val) {
-                    setState(() {});
-                  },
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return loc.nameRequired;
-                    }
-                    if (value.trim().length < 2) {
-                      return loc.invalidName;
-                    }
-                    return null;
+                      onChanged: (val) {
+                        ctrl.update();
+                      },
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return loc.nameRequired;
+                        }
+                        if (value.trim().length < 2) {
+                          return loc.invalidName;
+                        }
+                        return null;
+                      },
+                    );
                   },
                 ),
-                SizedBox(height: 48.h),
-                // Save Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: profileProvider.isSaving ? null : () => _submitForm(loc),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      padding: EdgeInsets.symmetric(vertical: 18.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: profileProvider.isSaving
-                        ? SizedBox(
-                            height: 20.w,
-                            width: 20.w,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Text(
-                            loc.save,
-                            style: theme.textTheme.titleMedium!.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.sp,
-                            ),
-                          ),
+                const VSpace48(),
+                Obx(
+                  () => AppPrimaryButton(
+                    text: loc.save,
+                    onPressed: () => controller.submitForm(loc),
+                    isLoading: profileController.isSaving,
                   ),
                 ),
               ],

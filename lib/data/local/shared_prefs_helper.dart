@@ -1,7 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/constants/app_storage_keys.dart';
 
 class SharedPrefsHelper {
-  static const String _tokenKey = 'auth_token';
+  static const String _tokenKey = AppStorageKeys.authToken;
   static const String _userEmailKey = 'user_email';
 
   /// Save token

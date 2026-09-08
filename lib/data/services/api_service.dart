@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
-import '../../core/constants.dart';
+import '../../core/network/api_endpoints.dart';
 import '../local/shared_prefs_helper.dart';
+
 class ApiService {
   late final Dio _dio;
 
   ApiService() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: AppConstants.baseUrl,
+        baseUrl: ApiEndpoints.baseUrl,
         connectTimeout: const Duration(minutes: 1),
         receiveTimeout: const Duration(minutes: 1),
         headers: {

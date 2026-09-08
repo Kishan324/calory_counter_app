@@ -1,120 +1,24 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../providers/onboarding_provider.dart';
-import '../../data/models/user_model.dart';
-import 'auth/auth_entry_screen.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_space.dart';
+import '../widgets/app_glass_button.dart';
+import '../../controllers/onboarding_controller.dart';
 import 'onboarding/welcome_screen.dart';
 import 'onboarding/feature_screens.dart';
 import 'onboarding/user_info_screen.dart';
 import 'onboarding/all_set_screen.dart';
 
-/// Parent controller screen — owns PageController, navigation logic,
-/// page indicator, skip button, and user form state.
-/// Each page is a separate, modular widget imported from onboarding/.
-class OnboardingScreen extends StatefulWidget {
+/// Parent onboarding screen owning PageController, page indicators, and profile intake state via GetX.
+class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
-
-  @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
-}
-
-class _OnboardingScreenState extends State<OnboardingScreen> {
-  late final PageController _pageController;
-  int _currentPage = 0;
-
-  // ── User form state (owned here, passed down to UserInfoScreen) ──
-  String _selectedGender = '';
-  DateTime? _selectedDate;
-  final _weightController = TextEditingController();
-  final _heightController = TextEditingController();
-  String? _formError;
-
-  static const int _totalPages = 5;
-
-  @override
-  void initState() {
-    super.initState();
-    final savedIndex = context.read<OnboardingProvider>().savedPageIndex;
-    _currentPage = savedIndex;
-    _pageController = PageController(initialPage: savedIndex);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    _weightController.dispose();
-    _heightController.dispose();
-    super.dispose();
-  }
-
-  // ── Navigation ───────────────────────────────────────────────────
-
-  void _onPageChanged(int index) {
-    setState(() {
-      _currentPage = index;
-      _formError = null;
-    });
-    context.read<OnboardingProvider>().savePageIndex(index);
-  }
-
-  void _nextPage() {
-    // Validate user info before moving from page 3
-    if (_currentPage == 3) {
-      if (_selectedGender.isEmpty) {
-        setState(() => _formError = 'Please select your gender');
-        return;
-      }
-      if (_selectedDate == null) {
-        setState(() => _formError = 'Please select your birth date');
-        return;
-      }
-      final weight = double.tryParse(_weightController.text.trim());
-      if (weight == null || weight <= 0) {
-        setState(() => _formError = 'Please enter a valid weight');
-        return;
-      }
-      final height = double.tryParse(_heightController.text.trim());
-      if (height == null || height <= 0) {
-        setState(() => _formError = 'Please enter a valid height');
-        return;
-      }
-      setState(() => _formError = null);
-
-      context.read<OnboardingProvider>().saveUserData(UserModel(
-            gender: _selectedGender,
-            birthDate: _selectedDate!,
-            weight: weight,
-            height: height,
-          ));
-    }
-
-    if (_currentPage < _totalPages - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOutCubic,
-      );
-    } else {
-      _completeOnboarding();
-    }
-  }
-
-  void _completeOnboarding() async {
-    await context.read<OnboardingProvider>().completeOnboarding();
-    
-    if (!mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthEntryScreen()),
-      (route) => false,
-    );
-  }
-
-  // ── Build ────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -122,25 +26,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
 
+    final controller = Get.put(OnboardingController());
+
+    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
-          // Background gradient
+          // ── Ambient Background Canvas ──
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: isDark
                       ? [
-                          theme.colorScheme.primary.withOpacity(0.15),
+                          theme.colorScheme.primary.withOpacity(0.14),
                           theme.scaffoldBackgroundColor,
                           theme.scaffoldBackgroundColor,
                         ]
                       : [
-                          theme.colorScheme.primary.withOpacity(0.08),
+                          theme.colorScheme.primary.withOpacity(0.07),
                           theme.scaffoldBackgroundColor,
                           theme.scaffoldBackgroundColor,
                         ],
@@ -148,162 +57,209 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-
-          // ── PageView with modular screen widgets ──
-          PageView(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            physics: const ClampingScrollPhysics(),
-            children: [
-              // Page 0
-              WelcomeScreen(onNext: _nextPage),
-              // Page 1
-              const CalorieFeatureScreen(),
-              // Page 2
-              const AnalyticsFeatureScreen(),
-              // Page 3
-              UserInfoScreen(
-                selectedGender: _selectedGender,
-                selectedDate: _selectedDate,
-                weightController: _weightController,
-                heightController: _heightController,
-                formError: _formError,
-                onGenderSelected: (g) => setState(() {
-                  _selectedGender = g;
-                  _formError = null;
-                }),
-                onDateSelected: (d) => setState(() {
-                  _selectedDate = d;
-                  _formError = null;
-                }),
-              ),
-              // Page 4
-              const AllSetScreen(),
-            ],
-          ),
-
-          // ── Skip button (top-right) ──
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: EdgeInsets.only(top: 8.h, right: 16.w),
-                child: _currentPage < _totalPages - 1
-                    ? TextButton(
-                        onPressed: _completeOnboarding,
-                        child: Text(
-                          loc.skip,
-                          style: theme.textTheme.bodyLarge!.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withOpacity(0.5),
-                          ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+          Positioned(
+            top: -40.h,
+            right: -40.w,
+            child: Container(
+              width: 200.w,
+              height: 200.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    theme.colorScheme.primary.withOpacity(isDark ? 0.20 : 0.10),
+                    theme.colorScheme.primary.withOpacity(0.0),
+                  ],
+                ),
               ),
             ),
           ),
 
-          // ── Page indicator + CTA button (bottom) ──
+          // ── Page View ──
+          PageView(
+            controller: controller.pageController,
+            onPageChanged: controller.onPageChanged,
+            physics: const BouncingScrollPhysics(),
+            children: [
+              WelcomeScreen(onNext: controller.nextPage),
+              const CalorieFeatureScreen(),
+              const AnalyticsFeatureScreen(),
+              Obx(
+                () => UserInfoScreen(
+                  selectedGender: controller.selectedGender.value,
+                  selectedDate: controller.selectedDate.value,
+                  weightController: controller.weightController,
+                  heightController: controller.heightController,
+                  formError: controller.formError.value,
+                  onGenderSelected: controller.setGender,
+                  onDateSelected: controller.setBirthDate,
+                ),
+              ),
+              const AllSetScreen(),
+            ],
+          ),
+
+          // ── Top Navigation Header ──
           SafeArea(
             child: Align(
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment.topCenter,
               child: Padding(
-                padding: EdgeInsets.only(
-                    bottom: 40.h, left: 24.w, right: 24.w),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppPadding.padding20,
+                  vertical: AppPadding.padding12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Animated dot indicators
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(_totalPages, (i) {
-                        final isActive = i == _currentPage;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin:
-                              EdgeInsets.symmetric(horizontal: 4.w),
-                          width: isActive ? 24.w : 8.w,
-                          height: 8.h,
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurface
-                                    .withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4.r),
+                    // Step Counter Pill
+                    Obx(
+                      () => Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppPadding.padding14,
+                          vertical: AppPadding.padding6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.white.withOpacity(0.08)
+                              : theme.colorScheme.surface,
+                          borderRadius: AppRadius.border20,
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.white.withOpacity(0.12)
+                                : AppColors.black.withOpacity(0.08),
                           ),
-                        );
-                      }),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.black.withOpacity(0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'STEP ${controller.currentPage.value + 1} OF ${OnboardingController.totalPages}',
+                          style: theme.textTheme.labelMedium!.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.1,
+                            fontSize: 11.sp,
+                          ),
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 24.h),
-                    // Glass CTA button
-                    _GlassButton(
-                      label: _currentPage == _totalPages - 1
-                          ? loc.letsGo
-                          : _currentPage == 0
-                              ? loc.getStarted
-                              : loc.continueBtn,
-                      onTap: _nextPage,
-                      theme: theme,
+                    // Skip Button
+                    Obx(
+                      () => controller.currentPage.value < OnboardingController.totalPages - 1
+                          ? InkWell(
+                              onTap: controller.skipOnboarding,
+                              borderRadius: AppRadius.border20,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: AppPadding.padding14,
+                                  vertical: AppPadding.padding6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppColors.white.withOpacity(0.08)
+                                      : theme.colorScheme.surface,
+                                  borderRadius: AppRadius.border20,
+                                  border: Border.all(
+                                    color: isDark
+                                        ? AppColors.white.withOpacity(0.12)
+                                        : AppColors.black.withOpacity(0.08),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.black.withOpacity(0.04),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  loc.skip,
+                                  style: theme.textTheme.bodyMedium!.copyWith(
+                                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13.sp,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ],
                 ),
               ),
             ),
           ),
+
+          // ── Bottom Floating Bar (Dots & Action Button) ──
+          if (!keyboardVisible)
+            SafeArea(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: 24.h,
+                    left: AppPadding.padding24,
+                    right: AppPadding.padding24,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Page indicator pills
+                      Obx(
+                        () => Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(OnboardingController.totalPages, (i) {
+                            final isActive = i == controller.currentPage.value;
+                            return AnimatedContainer(
+                              duration: AppDurations.medium,
+                              curve: Curves.easeOutCubic,
+                              margin: EdgeInsets.symmetric(horizontal: AppPadding.padding4),
+                              width: isActive ? 28.w : 8.w,
+                              height: 8.h,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurface.withOpacity(0.2),
+                                borderRadius: AppRadius.border10,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isActive
+                                        ? theme.colorScheme.primary.withOpacity(0.4)
+                                        : AppColors.transparent,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                      const VSpace20(),
+                      // Action CTA button
+                      Obx(
+                        () => AppGlassButton(
+                          label: controller.currentPage.value == OnboardingController.totalPages - 1
+                              ? loc.letsGo
+                              : controller.currentPage.value == 0
+                                  ? loc.getStarted
+                                  : loc.continueBtn,
+                          onTap: controller.nextPage,
+                          theme: theme,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-// ─── Glass CTA button ─────────────────────────────────────────────
-
-class _GlassButton extends StatelessWidget {
-  const _GlassButton({
-    required this.label,
-    required this.onTap,
-    required this.theme,
-  });
-  final String label;
-  final VoidCallback onTap;
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            width: double.infinity,
-            height: 56.h,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(20.r),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.primary.withOpacity(0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                label,
-                style: theme.textTheme.titleLarge!.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

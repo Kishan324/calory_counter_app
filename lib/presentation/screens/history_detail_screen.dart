@@ -4,6 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_space.dart';
+
+/// Detailed view for an individual food consumption log entry.
 class HistoryDetailScreen extends StatelessWidget {
   final HistoryModel item;
 
@@ -15,7 +22,6 @@ class HistoryDetailScreen extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
 
-    // Format date
     String dateStr = "N/A";
     if (item.createdAt != null) {
       dateStr = DateFormat.yMMMMd(
@@ -25,29 +31,24 @@ class HistoryDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-
-      /// ❌ Removed title from AppBar (we show it on image)
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         title: const SizedBox(),
       ),
-
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            /// 🔥 PREMIUM IMAGE HEADER
             Stack(
               children: [
-                /// IMAGE
                 Hero(
                   tag: 'history_image_${item.id}',
                   child: ClipRRect(
                     borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(28.r),
-                      bottomRight: Radius.circular(28.r),
+                      bottomLeft: Radius.circular(AppRadius.radius28),
+                      bottomRight: Radius.circular(AppRadius.radius28),
                     ),
                     child: Image.network(
                       item.imageUrl,
@@ -77,50 +78,24 @@ class HistoryDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                /// GRADIENT OVERLAY
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(28.r),
-                        bottomRight: Radius.circular(28.r),
+                        bottomLeft: Radius.circular(AppRadius.radius28),
+                        bottomRight: Radius.circular(AppRadius.radius28),
                       ),
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.05),
-                          Colors.black.withOpacity(0.4),
+                          AppColors.black.withOpacity(0.05),
+                          AppColors.black.withOpacity(0.4),
                         ],
                       ),
                     ),
                   ),
                 ),
-
-                /// BACK BUTTON
-                // Positioned(
-                //   top: 40.h,
-                //   left: 16.w,
-                //   child: InkWell(
-                //     onTap: () => Navigator.pop(context),
-                //     borderRadius: BorderRadius.circular(50),
-                //     child: Container(
-                //       padding: EdgeInsets.all(8.w),
-                //       decoration: BoxDecoration(
-                //         color: Colors.black.withOpacity(0.3),
-                //         shape: BoxShape.circle,
-                //       ),
-                //       child: Icon(
-                //         Icons.arrow_back,
-                //         color: Colors.white,
-                //         size: 20.sp,
-                //       ),
-                //     ),
-                //   ),
-                // ),
-
-                /// TITLE ON IMAGE
                 Positioned(
                   bottom: 20.h,
                   left: 20.w,
@@ -128,7 +103,7 @@ class HistoryDetailScreen extends StatelessWidget {
                   child: Text(
                     item.name,
                     style: theme.textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 22.sp,
                       fontWeight: FontWeight.w700,
                     ),
@@ -136,20 +111,19 @@ class HistoryDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-
-            /// 🔽 DETAILS SECTION
             Padding(
-              padding: EdgeInsets.all(24.w),
+              padding: AppPadding.all24,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// CALORIES CARD
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppPadding.padding16,
+                      vertical: AppPadding.padding12,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -159,7 +133,7 @@ class HistoryDetailScreen extends StatelessWidget {
                           color: theme.colorScheme.primary,
                           size: 24.sp,
                         ),
-                        SizedBox(width: 8.w),
+                        const HSpace8(),
                         Text(
                           '${item.calories} ${l10n?.kcal ?? "kcal"}',
                           style: theme.textTheme.titleLarge?.copyWith(
@@ -170,10 +144,7 @@ class HistoryDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  SizedBox(height: 32.h),
-
-                  /// LOG REPORT TITLE
+                  const VSpace32(),
                   Text(
                     "Log Report",
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -181,24 +152,13 @@ class HistoryDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-
-                  SizedBox(height: 16.h),
-
-                  /// LOG DETAILS CARD
+                  const VSpace16(),
                   Container(
-                    padding: EdgeInsets.all(20.w),
+                    padding: AppPadding.all20,
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(24.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDark
-                              ? Colors.black.withOpacity(0.2)
-                              : Colors.black.withOpacity(0.04),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                      borderRadius: AppRadius.border24,
+                      boxShadow: AppShadows.cardSubtle(isDark),
                     ),
                     child: Column(
                       children: [

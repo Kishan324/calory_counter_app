@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import '../../providers/profile_provider.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_space.dart';
+import '../widgets/app_primary_button.dart';
+import '../../controllers/profile_controller.dart';
 
+/// Screen for modifying target weight goal managed via GetX.
 class WeightGoalScreen extends StatefulWidget {
   const WeightGoalScreen({Key? key}) : super(key: key);
 
@@ -15,14 +20,16 @@ class WeightGoalScreen extends StatefulWidget {
 class _WeightGoalScreenState extends State<WeightGoalScreen> {
   late final TextEditingController _weightController;
   final _formKey = GlobalKey<FormState>();
+  late final ProfileController profileController;
 
   @override
   void initState() {
     super.initState();
-    final profileProvider = context.read<ProfileProvider>();
-    // Pre-fill if there is an existing weight goal
+    profileController = Get.find<ProfileController>();
     _weightController = TextEditingController(
-      text: profileProvider.weightGoal != null ? profileProvider.weightGoal!.toString() : '',
+      text: profileController.weightGoal != null
+          ? profileController.weightGoal!.toString()
+          : '',
     );
   }
 
@@ -36,29 +43,23 @@ class _WeightGoalScreenState extends State<WeightGoalScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final weight = double.parse(_weightController.text.trim());
-    final profileProvider = context.read<ProfileProvider>();
 
-    final success = await profileProvider.updateProfileDetails(
+    await profileController.updateProfileDetails(
       weightGoal: weight,
       successMessage: loc.weightGoalUpdated,
     );
-
-    if (success && mounted) {
-      Navigator.pop(context);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final loc = AppLocalizations.of(context)!;
-    final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(loc.weightGoal, style: theme.textTheme.headlineMedium),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -66,35 +67,35 @@ class _WeightGoalScreenState extends State<WeightGoalScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.all(24.w),
+          padding: EdgeInsets.all(AppPadding.padding24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 12.h),
+                const VSpace12(),
                 Text(
                   loc.weightGoalTitle,
                   style: theme.textTheme.titleLarge!.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 8.h),
+                const VSpace8(),
                 Text(
                   loc.weightGoalSubtitle,
                   style: theme.textTheme.bodyMedium!.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                SizedBox(height: 36.h),
-                // Weight Goal Input
+                const VSpace36(),
                 TextFormField(
                   controller: _weightController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
                     labelText: loc.weightGoal,
-                    floatingLabelStyle: TextStyle(color: theme.colorScheme.primary),
+                    floatingLabelStyle: theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.primary),
                     prefixIcon: Icon(Icons.scale_rounded,
                         color: theme.colorScheme.onSurfaceVariant),
                     suffixText: 'kg',
@@ -103,32 +104,33 @@ class _WeightGoalScreenState extends State<WeightGoalScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
                         color: theme.colorScheme.onSurface.withOpacity(0.1),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
                         color: theme.colorScheme.primary,
                         width: 2,
                       ),
                     ),
                     errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
                         color: theme.colorScheme.error,
                       ),
                     ),
                     focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
                         color: theme.colorScheme.error,
                         width: 2,
                       ),
                     ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: AppPadding.padding20, vertical: AppPadding.padding18),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -141,37 +143,12 @@ class _WeightGoalScreenState extends State<WeightGoalScreen> {
                     return null;
                   },
                 ),
-                SizedBox(height: 48.h),
-                // Save Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: profileProvider.isSaving ? null : () => _submitForm(loc),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      padding: EdgeInsets.symmetric(vertical: 18.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: profileProvider.isSaving
-                        ? SizedBox(
-                            height: 20.w,
-                            width: 20.w,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Text(
-                            loc.save,
-                            style: theme.textTheme.titleMedium!.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.sp,
-                            ),
-                          ),
+                const VSpace48(),
+                Obx(
+                  () => AppPrimaryButton(
+                    text: loc.save,
+                    onPressed: () => _submitForm(loc),
+                    isLoading: profileController.isSaving,
                   ),
                 ),
               ],

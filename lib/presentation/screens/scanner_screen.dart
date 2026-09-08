@@ -1,321 +1,242 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:provider/provider.dart';
-import '../../providers/food_provider.dart';
+import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_space.dart';
+import '../../controllers/scanner_controller.dart';
 import 'food_result_screen.dart';
 
-class ScannerScreen extends StatefulWidget {
+/// Camera food scanner screen managed reactively via GetX ScannerController.
+class ScannerScreen extends StatelessWidget {
   const ScannerScreen({Key? key}) : super(key: key);
 
-  @override
-  State<ScannerScreen> createState() => _ScannerScreenState();
-}
-
-class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProviderStateMixin {
-  CameraController? _cameraController;
-  List<CameraDescription>? _cameras;
-  bool _isCameraInitialized = false;
-  bool _isScanning = false;
-  String? _capturedImagePath;
-
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeCamera();
-
-    _animationController = AnimationController(
-       duration: const Duration(seconds: 2),
-       vsync: this,
-    )..repeat(reverse: true);
-
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-  }
-
-  Future<void> _initializeCamera() async {
+  void _handleScan(BuildContext context, ScannerController scannerCtrl) async {
     try {
-      _cameras = await availableCameras();
-      if (_cameras != null && _cameras!.isNotEmpty) {
-        _cameraController = CameraController(
-          _cameras![0],
-          ResolutionPreset.high,
-          enableAudio: false,
+      final result = await scannerCtrl.captureAndScan();
+
+      if (result != null) {
+        await Get.to(
+          () => FoodResultScreen(
+            food: result,
+            imagePath: scannerCtrl.capturedImagePath.value!,
+          ),
+          transition: Transition.fadeIn,
+          duration: AppDurations.medium,
         );
 
-        await _cameraController!.initialize();
-        if (mounted) {
-          setState(() {
-            _isCameraInitialized = true;
-          });
-        }
+        scannerCtrl.resetCapturedImage();
       }
     } catch (e) {
-      debugPrint('Error initializing camera: $e');
-    }
-  }
-
-  @override
-  void dispose() {
-    _cameraController?.dispose();
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _captureAndScan() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
-    }
-
-    setState(() {
-        _isScanning = true;
-    });
-
-    try {
-      final XFile picture = await _cameraController!.takePicture();
-      
-      if (!mounted) return;
-      
-      setState(() {
-        _capturedImagePath = picture.path;
-      });
-      
-      final provider = Provider.of<FoodProvider>(context, listen: false);
-      final result = await provider.scanFood(picture.path);
-
-      if (mounted) {
-        setState(() {
-          _isScanning = false;
-        });
-
-        if (result != null) {
-          // Explicitly use FadeTransition to make it unmistakably a NEW screen,
-          // avoiding the visual illusion of an Android slide-up bottom sheet
-          await Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => FoodResultScreen(
-                food: result,
-                imagePath: _capturedImagePath!,
-              ),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              transitionDuration: const Duration(milliseconds: 400),
-            ),
-          );
-          
-          // Resume camera stream if user dismisses the result without action
-          if (mounted) {
-            setState(() {
-              _capturedImagePath = null;
-            });
-          }
-        } else if (provider.error != null) {
-          setState(() {
-            _capturedImagePath = null; // Reset on failure
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(provider.error!)),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isScanning = false;
-          _capturedImagePath = null;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error taking picture: $e')),
-        );
-      }
+      Get.snackbar(
+        'Scan Error',
+        'Error scanning food item: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error.withOpacity(0.8),
+        colorText: AppColors.white,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final scannerCtrl = Get.put(ScannerController());
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.black,
       body: Stack(
         children: [
-          // Camera Preview or Frozen Frame
-          if (_capturedImagePath != null)
-            Positioned.fill(
-              child: Image.file(
-                File(_capturedImagePath!),
-                fit: BoxFit.cover,
-              ),
-            )
-          else if (_isCameraInitialized)
-            Positioned.fill(
-              child: CameraPreview(_cameraController!),
-            )
-          else
-            const Center(child: CircularProgressIndicator(color: Colors.white)),
-          
-          // Overlay UI
-          if (_isCameraInitialized)
-            Positioned.fill(
+          Obx(() {
+            final path = scannerCtrl.capturedImagePath.value;
+            final isInit = scannerCtrl.isCameraInitialized.value;
+
+            if (path != null) {
+              return Positioned.fill(
+                child: Image.file(
+                  File(path),
+                  fit: BoxFit.cover,
+                ),
+              );
+            } else if (isInit && scannerCtrl.cameraController != null) {
+              return Positioned.fill(
+                child: CameraPreview(scannerCtrl.cameraController!),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.white),
+              );
+            }
+          }),
+          Obx(() {
+            if (!scannerCtrl.isCameraInitialized.value) {
+              return const SizedBox.shrink();
+            }
+
+            return Positioned.fill(
               child: SafeArea(
                 child: Column(
                   children: [
-                    // Top Bar
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: EdgeInsets.all(AppPadding.padding16),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.close,
+                                color: AppColors.white, size: 28),
+                            onPressed: () => Get.back(),
                           ),
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               'Scan Food',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
+                              style: GoogleFonts.sora(
+                                color: AppColors.white,
+                                fontSize: 18.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 48), // Balance for close button
+                          const HSpace48(),
                         ],
                       ),
                     ),
                     const Spacer(),
-                    
-                    // Viewfinder area with animation
                     SizedBox(
-                      width: 250,
-                      height: 250,
+                      width: 250.w,
+                      height: 250.w,
                       child: Stack(
                         children: [
-                          // Viewfinder Border
                           Container(
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
-                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                  color: AppColors.white.withOpacity(0.5), width: 2),
+                              borderRadius: AppRadius.border24,
                             ),
                           ),
-                          // Scanning Line Animation
-                          if (_isScanning)
-                            AnimatedBuilder(
-                              animation: _animation,
+                          Obx(() {
+                            if (!scannerCtrl.isScanning.value) {
+                              return const SizedBox.shrink();
+                            }
+
+                            return AnimatedBuilder(
+                              animation: scannerCtrl.animation,
                               builder: (context, child) {
                                 return Positioned(
-                                  top: _animation.value * 248,
+                                  top: scannerCtrl.animation.value * 248.h,
                                   left: 0,
                                   right: 0,
                                   child: Container(
                                     height: 3,
                                     decoration: BoxDecoration(
                                       color: Theme.of(context).colorScheme.primary,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
-                                          blurRadius: 8,
-                                          spreadRadius: 2,
-                                        ),
-                                      ],
+                                      boxShadow: AppShadows.glassButton(
+                                        Theme.of(context).colorScheme.primary,
+                                      ),
                                     ),
                                   ),
                                 );
                               },
-                            ),
+                            );
+                          }),
                         ],
                       ),
                     ),
-                    
                     const Spacer(),
-                    
-                    // Bottom Controls
                     Container(
-                      padding: const EdgeInsets.only(bottom: 32),
-                      child: _isScanning
-                          ? const SizedBox(height: 80) // Placed empty to allow overlay focus
-                          : GestureDetector(
-                              onTap: _captureAndScan,
+                      padding: EdgeInsets.only(bottom: AppPadding.padding32),
+                      child: Obx(() {
+                        if (scannerCtrl.isScanning.value) {
+                          return const VSpace80();
+                        }
+
+                        return GestureDetector(
+                          onTap: () => _handleScan(context, scannerCtrl),
+                          child: Container(
+                            width: 80.w,
+                            height: 80.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: AppColors.white, width: 4),
+                            ),
+                            child: Center(
                               child: Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
+                                width: 64.w,
+                                height: 64.w,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.white,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 4),
-                                ),
-                                child: Center(
-                                  child: Container(
-                                    width: 64,
-                                    height: 64,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
                                 ),
                               ),
                             ),
+                          ),
+                        );
+                      }),
                     ),
                   ],
                 ),
               ),
-            ),
-
-          // Premium Loading Overlay (Shows during API mapping)
-          if (_isScanning && _capturedImagePath != null)
-            Positioned.fill(
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-                  child: Container(
-                    color: Colors.black.withOpacity(0.55),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            width: 64,
-                            height: 64,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 3.5,
+            );
+          }),
+          Obx(() {
+            if (scannerCtrl.isScanning.value &&
+                scannerCtrl.capturedImagePath.value != null) {
+              return Positioned.fill(
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                    child: Container(
+                      color: AppColors.black.withOpacity(0.55),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              width: 64,
+                              height: 64,
+                              child: CircularProgressIndicator(
+                                color: AppColors.white,
+                                strokeWidth: 3.5,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 32),
-                          const Text(
-                            'Analyzing your food...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+                            VSpace32(),
+                            Text(
+                              'Analyzing your food...',
+                              style: GoogleFonts.sora(
+                                color: AppColors.white,
+                                fontSize: 22.sp,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Calories • Protein • Carbs • Fats',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 1.2,
+                            const VSpace12(),
+                            Text(
+                              'Calories • Protein • Carbs • Fats',
+                              style: GoogleFonts.inter(
+                                color: AppColors.white70,
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 1.2,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
     );

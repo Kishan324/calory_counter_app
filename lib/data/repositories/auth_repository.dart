@@ -1,47 +1,59 @@
-import 'package:dio/dio.dart';
+import 'dart:async';
+import '../../core/theme/app_durations.dart';
 import '../services/api_service.dart';
 
+/// Repository for authenticating users via simulated dummy backend endpoints.
 class AuthRepository {
   final ApiService _apiService;
 
   AuthRepository(this._apiService);
 
+  ApiService get apiService => _apiService;
+
+  /// Simulated dummy login call returning template session data.
   Future<Map<String, dynamic>> login(String email, String password) async {
-    try {
-      final response = await _apiService.post(
-        '/login', // Replace with AppConstants.loginEndpoint later
-        data: {
-          'email': email,
-          'password': password,
-        },
-      );
-      // Ensure the response data is parsed as a map
-      return response.data as Map<String, dynamic>;
-    } on DioException catch (e) {
-      // ApiService already formats error messages nicely inside the DioException.error field
-      throw e.error ?? "Failed to login. Please try again.";
-    } catch (e) {
-      throw "An unexpected error occurred: ${e.toString()}";
+    await Future.delayed(AppDurations.slow);
+
+    if (email.isEmpty || password.isEmpty) {
+      throw "Email and password cannot be empty";
     }
+
+    return {
+      'success': true,
+      'data': {
+        'token': 'mock_jwt_token_fitcal_${DateTime.now().millisecondsSinceEpoch}',
+        'user': {
+          'id': 101,
+          'email': email,
+          'name': email.split('@').first.toUpperCase(),
+        },
+        'message': 'Logged in successfully',
+      }
+    };
   }
 
-  Future<Map<String, dynamic>> signup(String name, String email, String password, String passwordConfirmation) async {
-    try {
-      final response = await _apiService.post(
-        '/register', // Replace with AppConstants.signupEndpoint later
-        data: {
-          'name': name,
-          'email': email,
-          'password': password,
-          ''
-          'password_confirmation':passwordConfirmation,
-        },
-      );
-      return response.data as Map<String, dynamic>;
-    } on DioException catch (e) {
-      throw e.error ?? "Failed to signup. Please try again.";
-    } catch (e) {
-      throw "An unexpected error occurred: ${e.toString()}";
+  /// Simulated dummy signup call returning template user account.
+  Future<Map<String, dynamic>> signup(
+    String name,
+    String email,
+    String password,
+    String passwordConfirmation,
+  ) async {
+    await Future.delayed(AppDurations.slow);
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      throw "Please fill all required registration fields";
     }
+
+    return {
+      'success': true,
+      'token': 'mock_jwt_token_fitcal_${DateTime.now().millisecondsSinceEpoch}',
+      'user': {
+        'id': 102,
+        'name': name,
+        'email': email,
+      },
+      'message': 'Account registered successfully',
+    };
   }
 }

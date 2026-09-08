@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import '../../providers/profile_provider.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_space.dart';
+import '../widgets/app_primary_button.dart';
+import '../../controllers/profile_controller.dart';
 
+/// Screen for updating target daily calorie allowance managed via GetX.
 class DailyCaloriesScreen extends StatefulWidget {
   const DailyCaloriesScreen({Key? key}) : super(key: key);
 
@@ -15,14 +20,16 @@ class DailyCaloriesScreen extends StatefulWidget {
 class _DailyCaloriesScreenState extends State<DailyCaloriesScreen> {
   late final TextEditingController _caloriesController;
   final _formKey = GlobalKey<FormState>();
+  late final ProfileController profileController;
 
   @override
   void initState() {
     super.initState();
-    final profileProvider = context.read<ProfileProvider>();
-    // Pre-fill if there is an existing calorie target
+    profileController = Get.find<ProfileController>();
     _caloriesController = TextEditingController(
-      text: profileProvider.dailyCalories != null ? profileProvider.dailyCalories!.toString() : '',
+      text: profileController.dailyCalories != null
+          ? profileController.dailyCalories!.toString()
+          : '',
     );
   }
 
@@ -36,29 +43,23 @@ class _DailyCaloriesScreenState extends State<DailyCaloriesScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final calories = int.parse(_caloriesController.text.trim());
-    final profileProvider = context.read<ProfileProvider>();
 
-    final success = await profileProvider.updateProfileDetails(
+    await profileController.updateProfileDetails(
       dailyCalories: calories,
       successMessage: loc.dailyCaloriesUpdated,
     );
-
-    if (success && mounted) {
-      Navigator.pop(context);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final loc = AppLocalizations.of(context)!;
-    final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(loc.dailyCalories, style: theme.textTheme.headlineMedium),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -66,35 +67,34 @@ class _DailyCaloriesScreenState extends State<DailyCaloriesScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.all(24.w),
+          padding: EdgeInsets.all(AppPadding.padding24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 12.h),
+                const VSpace12(),
                 Text(
                   loc.dailyCaloriesTitle,
                   style: theme.textTheme.titleLarge!.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 8.h),
+                const VSpace8(),
                 Text(
                   loc.dailyCaloriesSubtitle,
                   style: theme.textTheme.bodyMedium!.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                SizedBox(height: 36.h),
-                // Daily Calories Input
+                const VSpace36(),
                 TextFormField(
                   controller: _caloriesController,
                   keyboardType: TextInputType.number,
                   style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
                     labelText: loc.dailyCalories,
-                    floatingLabelStyle: TextStyle(color: theme.colorScheme.primary),
+                    floatingLabelStyle: theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.primary),
                     prefixIcon: Icon(Icons.local_fire_department_rounded,
                         color: theme.colorScheme.onSurfaceVariant),
                     suffixText: 'kcal',
@@ -103,32 +103,33 @@ class _DailyCaloriesScreenState extends State<DailyCaloriesScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
                         color: theme.colorScheme.onSurface.withOpacity(0.1),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
                         color: theme.colorScheme.primary,
                         width: 2,
                       ),
                     ),
                     errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
                         color: theme.colorScheme.error,
                       ),
                     ),
                     focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
                         color: theme.colorScheme.error,
                         width: 2,
                       ),
                     ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: AppPadding.padding20, vertical: AppPadding.padding18),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -141,37 +142,12 @@ class _DailyCaloriesScreenState extends State<DailyCaloriesScreen> {
                     return null;
                   },
                 ),
-                SizedBox(height: 48.h),
-                // Save Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: profileProvider.isSaving ? null : () => _submitForm(loc),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      padding: EdgeInsets.symmetric(vertical: 18.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: profileProvider.isSaving
-                        ? SizedBox(
-                            height: 20.w,
-                            width: 20.w,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Text(
-                            loc.save,
-                            style: theme.textTheme.titleMedium!.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.sp,
-                            ),
-                          ),
+                const VSpace48(),
+                Obx(
+                  () => AppPrimaryButton(
+                    text: loc.save,
+                    onPressed: () => _submitForm(loc),
+                    isLoading: profileController.isSaving,
                   ),
                 ),
               ],

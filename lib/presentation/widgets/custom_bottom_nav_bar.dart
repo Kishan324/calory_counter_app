@@ -3,6 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_sizes.dart';
+import '../../core/theme/app_space.dart';
+
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -20,37 +28,29 @@ class CustomBottomNavBar extends StatelessWidget {
     final loc = AppLocalizations.of(context)!;
 
     return Container(
-      height: 70.h,
+      height: AppSizes.navBarHeight,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28.r),
+        borderRadius: AppRadius.border28,
         border: Border.all(
           color: isDark
-              ? Colors.white.withOpacity(0.15)
-              : Colors.white.withOpacity(0.25),
+              ? AppColors.white.withOpacity(0.15)
+              : AppColors.white.withOpacity(0.25),
           width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(0.4)
-                : Colors.white.withOpacity(0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        boxShadow: AppShadows.header(isDark),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28.r),
+        borderRadius: AppRadius.border28,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Container(
             decoration: BoxDecoration(
               color: isDark
-                  ? Colors.black.withOpacity(0.4)
-                  : Colors.white.withOpacity(0.08),
+                  ? AppColors.black.withOpacity(0.4)
+                  : AppColors.white.withOpacity(0.08),
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              padding: EdgeInsets.symmetric(horizontal: AppPadding.padding12, vertical: AppPadding.padding6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -109,9 +109,9 @@ class _BottomNavItem extends StatelessWidget {
     final primaryColor = theme.colorScheme.primary;
 
     final iconColor =
-        isSelected ? primaryColor : (isDark ? Colors.white54 : Colors.grey);
+        isSelected ? primaryColor : (isDark ? AppColors.white54 : AppColors.textSubLight);
     final textColor =
-        isSelected ? primaryColor : (isDark ? Colors.white54 : Colors.grey);
+        isSelected ? primaryColor : (isDark ? AppColors.white54 : AppColors.textSubLight);
 
     return GestureDetector(
       onTap: () => onTap(index),
@@ -119,28 +119,28 @@ class _BottomNavItem extends StatelessWidget {
       child: SizedBox(
         width: 75.w,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 4.h),
+          padding: EdgeInsets.symmetric(horizontal: AppPadding.padding2, vertical: AppPadding.padding4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedScale(
                 scale: isSelected ? 1.15 : 1.0,
-                duration: const Duration(milliseconds: 300),
+                duration: AppDurations.normal,
                 curve: Curves.easeOutBack,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: AppDurations.normal,
                   child: Icon(
                     icon,
                     color: iconColor,
-                    size: 24.sp,
+                    size: AppSizes.iconLg,
                   ),
                 ),
               ),
-              SizedBox(height: 4.h),
+              const VSpace4(),
               Flexible(
                 child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 300),
+                  duration: AppDurations.normal,
                   curve: Curves.easeOutCubic,
                   style: isSelected
                       ? theme.textTheme.bodySmall!.copyWith(

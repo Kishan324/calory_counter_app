@@ -1,15 +1,23 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_sizes.dart';
+import '../../core/theme/app_space.dart';
 
 import 'home_screen.dart';
 import 'analytics_screen.dart';
 import 'profile_screen.dart';
 import 'scanner_screen.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
-import '../../data/services/biometric_service.dart';
-import 'dart:ui';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../controllers/main_controller.dart';
 
+/// Shell screen housing main navigation tabs and biometric security lock.
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
@@ -18,13 +26,18 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
-  int _currentIndex = 0;
-  bool _isLocked = false;
-  bool _hasCheckedOnce = false;
+  late final MainController controller;
+
+  final List<Widget> _screens = const [
+    HomeScreen(key: ValueKey('home')),
+    AnalyticsScreen(key: ValueKey('analytics')),
+    ProfileScreen(key: ValueKey('profile')),
+  ];
 
   @override
   void initState() {
     super.initState();
+    controller = Get.put(MainController());
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -37,64 +50,12 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (!_hasCheckedOnce) {
-        _hasCheckedOnce = true;
-        return; // 🔥 skip first resume
-      }
-
-      _checkLock();
+      controller.handleAppResume(context);
     }
-  }
-
-  bool _isAuthenticating = false;
-
-  Future<void> _checkLock() async {
-    if (_isAuthenticating) return; // 🔥 prevent loop
-
-    final bioService = BiometricService();
-
-    if (await bioService.isAppLockEnabled() &&
-        await bioService.isBiometricAvailable()) {
-      _isAuthenticating = true; // 🔥 start lock
-
-      setState(() {
-        _isLocked = true;
-      });
-
-      final authenticated = await bioService.authenticate(
-        localizedReason: AppLocalizations.of(context)!.authenticateToUnlock,
-      );
-
-      _isAuthenticating = false; // 🔥 reset
-
-      if (authenticated) {
-        if (mounted) {
-          setState(() {
-            _isLocked = false;
-          });
-        }
-      }
-    }
-  }
-
-  final List<Widget> _screens = const [
-    HomeScreen(key: ValueKey('home')),
-    AnalyticsScreen(key: ValueKey('analytics')),
-    ProfileScreen(key: ValueKey('profile')),
-  ];
-
-  void _onTabTapped(int index) {
-    if (_currentIndex == index) return;
-    setState(() {
-      _currentIndex = index;
-    });
   }
 
   void _onFabTapped() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ScannerScreen()),
-    );
+    Get.to(() => const ScannerScreen());
   }
 
   @override
@@ -110,24 +71,26 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           body: Stack(
             children: [
               Positioned.fill(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.04, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: _screens[_currentIndex],
+                child: Obx(
+                  () => AnimatedSwitcher(
+                    duration: AppDurations.normal,
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0.04, 0),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _screens[controller.currentIndex.value],
+                  ),
                 ),
               ),
               Positioned(
@@ -140,33 +103,30 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       IntrinsicWidth(
-                        child: CustomBottomNavBar(
-                          currentIndex: _currentIndex,
-                          onTap: _onTabTapped,
+                        child: Obx(
+                          () => CustomBottomNavBar(
+                            currentIndex: controller.currentIndex.value,
+                            onTap: controller.changeTab,
+                          ),
                         ),
                       ),
-                      SizedBox(width: 12.w),
+                      const HSpace12(),
                       GestureDetector(
                         onTap: _onFabTapped,
                         child: Container(
-                          height: 64.w,
-                          width: 64.w,
+                          height: AppSizes.avatarSizeMd,
+                          width: AppSizes.avatarSizeMd,
                           margin: EdgeInsets.only(right: 8.w),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.primary,
                             shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    theme.colorScheme.primary.withOpacity(0.35),
-                                blurRadius: 15,
-                                offset: const Offset(0, 6),
-                              )
-                            ],
+                            boxShadow: AppShadows.primaryButton(
+                              theme.colorScheme.primary,
+                            ),
                           ),
                           child: Icon(
                             Icons.add,
-                            color: Colors.white,
+                            color: AppColors.white,
                             size: 32.sp,
                           ),
                         ),
@@ -178,33 +138,35 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             ],
           ),
         ),
-        if (_isLocked)
-          Positioned.fill(
+        Obx(() {
+          if (!controller.isLocked.value) return const SizedBox.shrink();
+
+          return Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
               child: Container(
-                color: Colors.black.withOpacity(0.5),
+                color: AppColors.black.withOpacity(0.5),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.lock_rounded,
-                          color: Colors.white, size: 64.sp),
-                      SizedBox(height: 16.h),
+                          color: AppColors.white, size: 64.sp),
+                      const VSpace16(),
                       Text(
-                        AppLocalizations.of(context)!.appLocked,
-                        style: TextStyle(
-                          color: Colors.white,
+                        AppLocalizations.of(context)?.appLocked ?? "App Locked",
+                        style: theme.textTheme.headlineMedium!.copyWith(
+                          color: AppColors.white,
                           fontSize: 24.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8.h),
+                      const VSpace8(),
                       TextButton(
-                        onPressed: _checkLock,
+                        onPressed: () => controller.checkLock(context),
                         child: Text(
-                          AppLocalizations.of(context)!.tapToUnlock,
-                          style: TextStyle(
+                          AppLocalizations.of(context)?.tapToUnlock ?? "Tap to Unlock",
+                          style: theme.textTheme.labelLarge!.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
@@ -215,7 +177,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
-          ),
+          );
+        }),
       ],
     );
   }

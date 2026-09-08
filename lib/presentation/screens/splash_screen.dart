@@ -1,13 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/constants/app_storage_keys.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_space.dart';
 import 'auth/auth_entry_screen.dart';
 import 'onboarding_screen.dart';
 import 'main_screen.dart';
 import '../../data/services/biometric_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+/// Animated splash entry screen that validates session tokens and app lock security.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -25,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: AppDurations.extraSlow,
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -47,30 +53,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   void _startTimer() {
-    Timer(const Duration(milliseconds: 2000), _navigateToNext);
+    Timer(AppDurations.splashDelay, _navigateToNext);
   }
 
-  void _navigateToNext() async {
+  Future<void> _navigateToNext() async {
     if (!mounted) return;
+    final l10nReason = AppLocalizations.of(context)?.authenticateToUnlock ?? "Authenticate to unlock";
 
     final prefs = await SharedPreferences.getInstance();
-    final bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
-    final token = prefs.getString('auth_token');
+    final bool isFirstTime = prefs.getBool(AppStorageKeys.isFirstTime) ?? true;
+    final token = prefs.getString(AppStorageKeys.authToken);
     final bool isLoggedIn = token != null && token.isNotEmpty;
-    final bool appLockEnabled = prefs.getBool('appLock') ?? false;
-
-    // Debug logs
-    debugPrint("==== DEBUG PHASE 4: SPLASH SCREEN ====");
-    debugPrint("READING 'auth_token': $token");
-    debugPrint("IS LOGGED IN EVALUATION: $isLoggedIn");
-    debugPrint("APP LOCK APP: $appLockEnabled");
-    debugPrint("FIRST TIME: $isFirstTime");
+    final bool appLockEnabled = prefs.getBool(AppStorageKeys.appLock) ?? false;
 
     if (!isFirstTime && isLoggedIn && appLockEnabled) {
       final bioService = BiometricService();
       if (await bioService.isBiometricAvailable()) {
         final authenticated = await bioService.authenticate(
-          localizedReason: AppLocalizations.of(context)!.authenticateToUnlock,
+          localizedReason: l10nReason,
         );
 
         if (!authenticated) {
@@ -97,11 +97,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       targetScreen = const MainScreen();
     }
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => targetScreen),
-      (route) => false,
-    );
+    Get.offAll(() => targetScreen);
   }
 
   void _showLockRetryDialog(bool isFirstTime, bool isLoggedIn) {
@@ -111,16 +107,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         backgroundColor: theme.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
-        title: const Text('App Locked', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Authentication is required to access your data.'),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.border24),
+        title: Text('App Locked', style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold)),
+        content: Text('Authentication is required to access your data.', style: theme.textTheme.bodyMedium),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _navigateToNext();
             },
-            child: Text('Retry', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+            child: Text('Retry', style: theme.textTheme.labelLarge!.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -130,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
@@ -154,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     size: 60.sp,
                   ),
                 ),
-                SizedBox(height: 24.h),
+                const VSpace24(),
                 Text(
                   'FitCal',
                   style: theme.textTheme.headlineLarge!.copyWith(
@@ -162,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     letterSpacing: 1.2,
                   ),
                 ),
-                SizedBox(height: 8.h),
+                const VSpace8(),
                 Text(
                   'Calory Counter and Diet App',
                   style: theme.textTheme.bodyMedium!.copyWith(

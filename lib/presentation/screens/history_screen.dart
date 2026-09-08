@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../providers/history_provider.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_durations.dart';
+import '../../core/theme/app_padding.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
+import '../../core/theme/app_space.dart';
+
+import '../../controllers/history_controller.dart';
 import '../../data/models/history_model.dart';
 import 'history_detail_screen.dart';
 
+/// Historical food log view with date navigation and detailed item cards.
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -16,19 +24,20 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  late final HistoryController historyController;
+
   @override
   void initState() {
     super.initState();
+    historyController = Get.find<HistoryController>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<HistoryProvider>(context, listen: false);
-      provider.fetchHistoryByDate(provider.selectedDate);
+      historyController.fetchHistoryByDate(historyController.selectedDate);
     });
   }
 
-  void _changeDate(BuildContext context, int days) {
-    final provider = Provider.of<HistoryProvider>(context, listen: false);
-    final newDate = provider.selectedDate.add(Duration(days: days));
-    provider.changeDate(newDate);
+  void _changeDate(int days) {
+    final newDate = historyController.selectedDate.add(Duration(days: days));
+    historyController.changeDate(newDate);
   }
 
   String _formatDate(BuildContext context, DateTime date) {
@@ -52,68 +61,72 @@ class _HistoryScreenState extends State<HistoryScreen> {
         title: Text(l10n?.history ?? 'History'),
         centerTitle: true,
       ),
-      floatingActionButton: Consumer<HistoryProvider>(
-        builder: (context, provider, _) {
-          final isToday = provider.isSameDay(provider.selectedDate, DateTime.now());
-          
-          return AnimatedScale(
-            scale: isToday ? 0.0 : 1.0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutBack,
-            child: FloatingActionButton.extended(
-              onPressed: isToday ? null : () => provider.changeDate(DateTime.now()),
-              backgroundColor: theme.colorScheme.primary,
-              elevation: 4,
-              icon: Icon(Icons.today_rounded, color: theme.colorScheme.onPrimary),
-              label: Text(
-                l10n?.historyToday ?? 'Today',
-                style: TextStyle(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold),
+      floatingActionButton: Obx(() {
+        final isToday = historyController.isSameDay(
+            historyController.selectedDate, DateTime.now());
+
+        return AnimatedScale(
+          scale: isToday ? 0.0 : 1.0,
+          duration: AppDurations.normal,
+          curve: Curves.easeOutBack,
+          child: FloatingActionButton.extended(
+            onPressed: isToday
+                ? null
+                : () => historyController.changeDate(DateTime.now()),
+            backgroundColor: theme.colorScheme.primary,
+            elevation: 4,
+            icon: Icon(Icons.today_rounded, color: theme.colorScheme.onPrimary),
+            label: Text(
+              l10n?.historyToday ?? 'Today',
+              style: theme.textTheme.labelLarge!.copyWith(
+                color: theme.colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      }),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onHorizontalDragEnd: (details) {
-          final provider = Provider.of<HistoryProvider>(context, listen: false);
           if (details.primaryVelocity! < -300) {
-            // Swipe Left (Next Day)
-            if (!provider.isSameDay(provider.selectedDate, DateTime.now())) {
-              _changeDate(context, 1);
+            if (!historyController.isSameDay(
+                historyController.selectedDate, DateTime.now())) {
+              _changeDate(1);
             }
           } else if (details.primaryVelocity! > 300) {
-            // Swipe Right (Previous Day)
-            _changeDate(context, -1);
+            _changeDate(-1);
           }
         },
         child: Column(
           children: [
             _buildDateSelector(context, theme),
-          Expanded(
-            child: Consumer<HistoryProvider>(
-              builder: (context, provider, child) {
-                if (provider.isLoading) {
+            Expanded(
+              child: Obx(() {
+                if (historyController.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (provider.filteredHistory.isEmpty) {
+                if (historyController.filteredHistory.isEmpty) {
                   return _buildEmptyState(
-                      context, provider.selectedDate, theme);
+                      context, historyController.selectedDate, theme);
                 }
 
                 return ListView.separated(
                   physics: const BouncingScrollPhysics(),
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                  itemCount: provider.filteredHistory.length,
-                  separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppPadding.padding16,
+                    vertical: AppPadding.padding12,
+                  ),
+                  itemCount: historyController.filteredHistory.length,
+                  separatorBuilder: (context, index) => const VSpace12(),
                   itemBuilder: (context, index) {
-                    final item = provider.filteredHistory[index];
+                    final item = historyController.filteredHistory[index];
                     return TweenAnimationBuilder<double>(
                       key: ValueKey(item.id),
                       tween: Tween(begin: 0.0, end: 1.0),
-                      duration: Duration(milliseconds: 300 + (index * 50).clamp(0, 300)),
+                      duration: Duration(
+                          milliseconds: 300 + (index * 50).clamp(0, 300)),
                       curve: Curves.easeOutCubic,
                       builder: (context, value, child) {
                         return Opacity(
@@ -128,91 +141,79 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     );
                   },
                 );
-              },
+              }),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildDateSelector(BuildContext context, ThemeData theme) {
-    return Consumer<HistoryProvider>(
-      builder: (context, provider, _) {
-        final selectedDate = provider.selectedDate;
+    return Obx(() {
+      final selectedDate = historyController.selectedDate;
 
-        return Container(
-          padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
-          margin: EdgeInsets.all(12.w),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(20.r),
-            boxShadow: [
-              BoxShadow(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.black.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              /// LEFT ARROW
-              IconButton(
-                onPressed: () => _changeDate(context, -1),
-                icon: Icon(Icons.chevron_left),
-              ),
+      return Container(
+        padding: EdgeInsets.symmetric(
+          vertical: AppPadding.padding14,
+          horizontal: AppPadding.padding16,
+        ),
+        margin: AppPadding.all12,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: AppRadius.border20,
+          boxShadow: AppShadows.cardSubtle(theme.brightness == Brightness.dark),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => _changeDate(-1),
+              icon: const Icon(Icons.chevron_left),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                  );
 
-              /// DATE TEXT (CLICKABLE)
-              Expanded(
-                child: GestureDetector(
-                  onTap: () async {
-                    final pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(), // 🔥 no future
-                    );
-
-                    if (pickedDate != null) {
-                      provider.changeDate(pickedDate);
-                    }
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.calendar_today,
-                          size: 16.sp, color: theme.colorScheme.primary),
-                      SizedBox(width: 6.w),
-                      Text(
-                        _formatDate(context, selectedDate),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                  if (pickedDate != null) {
+                    historyController.changeDate(pickedDate);
+                  }
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_today,
+                        size: 16.sp, color: theme.colorScheme.primary),
+                    const HSpace6(),
+                    Text(
+                      _formatDate(context, selectedDate),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      SizedBox(width: 4.w),
-                      Icon(Icons.keyboard_arrow_down,
-                          color: theme.colorScheme.onSurfaceVariant),
-                    ],
-                  ),
+                    ),
+                    const HSpace4(),
+                    Icon(Icons.keyboard_arrow_down,
+                        color: theme.colorScheme.onSurfaceVariant),
+                  ],
                 ),
               ),
-
-              /// RIGHT ARROW (DISABLED FOR FUTURE)
-              IconButton(
-                onPressed: !provider.isSameDay(selectedDate, DateTime.now())
-                    ? () => _changeDate(context, 1)
-                    : null,
-                icon: Icon(Icons.chevron_right),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+            ),
+            IconButton(
+              onPressed: !historyController.isSameDay(
+                      selectedDate, DateTime.now())
+                  ? () => _changeDate(1)
+                  : null,
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildEmptyState(
@@ -224,7 +225,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        padding: AppPadding.symmetricH32,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -233,7 +234,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               size: 80.sp,
               color: theme.colorScheme.primary.withOpacity(0.35),
             ),
-            SizedBox(height: 16.h),
+            const VSpace16(),
             Text(
               emptyText,
               textAlign: TextAlign.center,
@@ -252,21 +253,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HistoryDetailScreen(item: item),
-            ),
-          );
-        }, // Navigates to detail report
-        borderRadius: BorderRadius.circular(20.r),
+          Get.to(() => HistoryDetailScreen(item: item));
+        },
+        borderRadius: AppRadius.border20,
         child: Container(
-          padding: EdgeInsets.all(12.w),
+          padding: AppPadding.all12,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.r),
+            borderRadius: AppRadius.border20,
             border: Border.all(
               color: theme.colorScheme.outline.withOpacity(0.08),
             ),
@@ -278,18 +274,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 theme.colorScheme.surface.withOpacity(isDark ? 0.8 : 0.95),
               ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: isDark ? Colors.black.withOpacity(0.3) : theme.colorScheme.shadow.withOpacity(0.04),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            boxShadow: AppShadows.card(isDark),
           ),
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(16.r),
+                borderRadius: AppRadius.border16,
                 child: Hero(
                   tag: 'history_image_${item.id}',
                   child: Image.network(
@@ -300,34 +290,36 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
+                        width: 68.w,
+                        height: 68.w,
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        child: Center(
+                          child: SizedBox(
+                            width: 20.w,
+                            height: 20.w,
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      (loadingProgress.expectedTotalBytes ?? 1)
+                                  : null,
+                              strokeWidth: 2,
+                              color: theme.colorScheme.primary.withOpacity(0.5),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) => Container(
                       width: 68.w,
                       height: 68.w,
                       color: theme.colorScheme.surfaceContainerHighest,
-                      child: Center(
-                        child: SizedBox(
-                          width: 20.w,
-                          height: 20.w,
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
-                                : null,
-                            strokeWidth: 2,
-                            color: theme.colorScheme.primary.withOpacity(0.5),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 68.w,
-                    height: 68.w,
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    child: Icon(Icons.restaurant, color: theme.colorScheme.onSurfaceVariant),
+                      child: Icon(Icons.restaurant,
+                          color: theme.colorScheme.onSurfaceVariant),
+                    ),
                   ),
                 ),
               ),
-              ),
-              SizedBox(width: 16.w),
+              const HSpace16(),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,12 +333,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 8.h),
+                    const VSpace8(),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppPadding.padding8,
+                        vertical: AppPadding.padding4,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: AppRadius.border8,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -356,7 +351,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             color: theme.colorScheme.primary,
                             size: 14.sp,
                           ),
-                          SizedBox(width: 4.w),
+                          const HSpace4(),
                           Text(
                             '${item.calories} ${l10n?.kcal ?? "kcal"}',
                             style: theme.textTheme.labelMedium?.copyWith(
@@ -375,8 +370,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
                 size: 24.sp,
               ),
-          
-          ],
+            ],
           ),
         ),
       ),
