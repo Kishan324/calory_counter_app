@@ -101,5 +101,32 @@
   "invalidCalories": "Por favor, introduce un objetivo de calorías diarias válido",
   "errorLoadingProfile": "Error al cargar el perfil",
   "saving": "Guardando...",
-  "save": "Guardar"
+  "save": "Guardar",
+  "healthScore": "Puntaje de Salud",
+  "dietQuality": "Calidad de Dieta",
+  "dayStreak": "Racha de {count} Días",
+  "weekly": "Semanal",
+  "monthly": "Mensual",
+  "excellent": "Excelente",
+  "onTrack": "En Buen Camino",
+  "smartInsights": "Información Inteligente",
+  "insightProteinMessage": "¡Buen trabajo! El objetivo de proteína se cumplió constantemente en este período.",
+  "insightCalorieMessage": "El consumo promedio es de {avg} kcal/día, alineado con tu objetivo.",
+  "target": "Objetivo",
+  "macroProgress": "Progreso de Macros",
+  "weekShort": "Sem {num}",
+  "analyticsDetail": "Informe Detallado",
+  "viewDetailedReport": "Ver Informe Detallado",
+  "nutritionGrade": "Grado de Nutrición",
+  "mealBreakdown": "Desglose por Categoría de Comida",
+  "recommendations": "Recomendaciones de Salud",
+  "hydrationScore": "Hidratación Óptima",
+  "nutritionScoreText": "Grado 94/100 — ¡Excelente balance!",
+  "totalMacros": "Macros Totales",
+  "hydrationTarget": "Meta 2.5L / 3.0L — ¡Mantén el consumo de agua!",
+  "proteinAdvice": "Una distribución constante de proteínas apoya la recuperación muscular."
 }
+
+
+
+

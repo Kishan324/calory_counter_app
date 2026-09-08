@@ -28,11 +28,12 @@ class AppColors {
   static const Color transparent = Colors.transparent;
   static const Color error = Colors.red;
 
-  // Macro Nutrient Colors
+  // Macro Nutrient & Status Colors
   static const Color proteinRed = Color(0xFFE57373);
   static const Color carbsBlue = Color(0xFF64B5F6);
   static const Color fatsGreen = Color(0xFF81C784);
   static const Color sugarPurple = Color(0xFFAB47BC);
+  static const Color amber = Color(0xFFFFB74D);
 
   // Theme Preset Colors
   static const Color mintPrimary = Color(0xFF00BFA5);

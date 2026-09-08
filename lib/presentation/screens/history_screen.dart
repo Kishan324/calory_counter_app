@@ -10,6 +10,7 @@ import '../../core/theme/app_padding.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_space.dart';
+import '../../core/utils/haptic_helper.dart';
 
 import '../../controllers/history_controller.dart';
 import '../../data/models/history_model.dart';
@@ -55,6 +56,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final isRtl = Localizations.localeOf(context).languageCode == 'ar';
 
     return Scaffold(
       appBar: AppBar(
@@ -72,7 +74,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
           child: FloatingActionButton.extended(
             onPressed: isToday
                 ? null
-                : () => historyController.changeDate(DateTime.now()),
+                : () {
+                    HapticHelper.lightImpact();
+                    historyController.changeDate(DateTime.now());
+                  },
             backgroundColor: theme.colorScheme.primary,
             elevation: 4,
             icon: Icon(Icons.today_rounded, color: theme.colorScheme.onPrimary),
@@ -89,12 +94,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onHorizontalDragEnd: (details) {
-          if (details.primaryVelocity! < -300) {
-            if (!historyController.isSameDay(
-                historyController.selectedDate, DateTime.now())) {
+          final velocity = details.primaryVelocity ?? 0;
+          if (velocity.abs() < 300) return;
+
+          // In LTR: velocity < 0 is swipe left (Next Day), velocity > 0 is swipe right (Previous Day)
+          // In RTL (Arabic): velocity > 0 is swipe right (Next Day), velocity < 0 is swipe left (Previous Day)
+          final bool isNextDayRequested = isRtl ? (velocity > 0) : (velocity < 0);
+
+          if (isNextDayRequested) {
+            // Only allow advancing forward if current date is before today
+            if (historyController.canGoNext(historyController.selectedDate)) {
+              HapticHelper.lightImpact();
               _changeDate(1);
             }
-          } else if (details.primaryVelocity! > 300) {
+          } else {
+            // Navigating backward in time (Past Day)
+            HapticHelper.lightImpact();
             _changeDate(-1);
           }
         },
@@ -150,8 +165,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildDateSelector(BuildContext context, ThemeData theme) {
+    final isRtl = Localizations.localeOf(context).languageCode == 'ar';
+
     return Obx(() {
       final selectedDate = historyController.selectedDate;
+      final canGoNext = historyController.canGoNext(selectedDate);
+
+      // In LTR: Left Chevron goes to Past (-1), Right Chevron goes to Next (+1).
+      // In RTL (Arabic): Right Chevron goes to Past (-1), Left Chevron goes to Next (+1).
+      final IconData prevIcon = isRtl ? Icons.chevron_right : Icons.chevron_left;
+      final IconData nextIcon = isRtl ? Icons.chevron_left : Icons.chevron_right;
 
       return Container(
         padding: EdgeInsets.symmetric(
@@ -166,13 +189,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         child: Row(
           children: [
+            // Past Day Button (1 day into past)
             IconButton(
-              onPressed: () => _changeDate(-1),
-              icon: const Icon(Icons.chevron_left),
+              onPressed: () {
+                HapticHelper.lightImpact();
+                _changeDate(-1);
+              },
+              icon: Icon(prevIcon),
             ),
             Expanded(
               child: GestureDetector(
                 onTap: () async {
+                  HapticHelper.lightImpact();
                   final pickedDate = await showDatePicker(
                     context: context,
                     initialDate: selectedDate,
@@ -203,12 +231,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
             ),
+            // Next Day Button (Disabled if currently Today)
             IconButton(
-              onPressed: !historyController.isSameDay(
-                      selectedDate, DateTime.now())
-                  ? () => _changeDate(1)
+              onPressed: canGoNext
+                  ? () {
+                      HapticHelper.lightImpact();
+                      _changeDate(1);
+                    }
                   : null,
-              icon: const Icon(Icons.chevron_right),
+              icon: Icon(nextIcon),
             ),
           ],
         ),

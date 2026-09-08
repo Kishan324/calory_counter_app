@@ -101,5 +101,32 @@
   "invalidCalories": "कृपया एक मान्य दैनिक कैलोरी लक्ष्य दर्ज करें",
   "errorLoadingProfile": "प्रोफ़ाइल लोड करने में विफल",
   "saving": "सहेज रहा है...",
-  "save": "सहेजें"
+  "save": "सहेजें",
+  "healthScore": "स्वास्थ्य स्कोर",
+  "dietQuality": "आहार की गुणवत्ता",
+  "dayStreak": "{count} दिनों की लकीर",
+  "weekly": "साप्ताहिक",
+  "monthly": "मासिक",
+  "excellent": "उत्कृष्ट",
+  "onTrack": "सही राह पर",
+  "smartInsights": "स्मार्ट अंतर्दृष्टि",
+  "insightProteinMessage": "बहुत बढ़िया! इस अवधि में प्रोटीन लक्ष्य लगातार पूरा हुआ।",
+  "insightCalorieMessage": "औसत खपत {avg} कि.कैलोरी/दिन है, जो आपके लक्ष्य के अनुरूप है।",
+  "target": "लक्ष्य",
+  "macroProgress": "मैक्रो लक्ष्य प्रगति",
+  "weekShort": "सप्ताह {num}",
+  "analyticsDetail": "विस्तृत रिपोर्ट",
+  "viewDetailedReport": "विस्तृत रिपोर्ट देखें",
+  "nutritionGrade": "पोषण ग्रेड",
+  "mealBreakdown": "भोजन श्रेणी विवरण",
+  "recommendations": "स्वास्थ्य सिफारिशें",
+  "hydrationScore": "सर्वोत्तम हाइड्रेशन",
+  "nutritionScoreText": "94/100 पोषण ग्रेड — उत्कृष्ट संतुलन!",
+  "totalMacros": "कुल मैक्रोज़",
+  "hydrationTarget": "2.5L / 3.0L लक्ष्य — पानी का सेवन बनाए रखें!",
+  "proteinAdvice": "निरंतर प्रोटीन सेवन मांसपेशियों की रिकवरी में मदद करता है।"
 }
+
+
+
+

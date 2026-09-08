@@ -64,6 +64,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _getLanguageName(String code) {
     switch (code) {
+      case 'ar':
+        return 'العربية';
+      case 'de':
+        return 'Deutsch';
       case 'hi':
         return 'हिंदी';
       case 'gu':

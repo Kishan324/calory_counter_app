@@ -101,5 +101,32 @@
   "invalidCalories": "કૃપા કરીને માન્ય દૈનિક કેલરી લક્ષ્ય દાખલ કરો",
   "errorLoadingProfile": "પ્રોફાઇલ લોડ કરવામાં નિષ્ફળ",
   "saving": "સાચવી રહ્યું છે...",
-  "save": "સાચવો"
+  "save": "સાચવો",
+  "healthScore": "સ્વાસ્થ્ય સ્કોર",
+  "dietQuality": "આહારની ગુણવત્તા",
+  "dayStreak": "{count} દિવસની સ્ટ્રીક",
+  "weekly": "સાપ્તાહિક",
+  "monthly": "માસિક",
+  "excellent": "ઉત્કૃષ્ટ",
+  "onTrack": "યોગ્ય ટ્રેક પર",
+  "smartInsights": "સ્માર્ટ આંતરદૃષ્ટિ",
+  "insightProteinMessage": "સરસ કામ! આ સમયગાળામાં પ્રોટીન લક્ષ્ય સતત પૂર્ણ થયું છે.",
+  "insightCalorieMessage": "સરેરાશ વપરાશ {avg} કિ.કેલરી/દિવસ છે, જે લક્ષ્ય સાથે સુસંગત છે.",
+  "target": "લક્ષ્ય",
+  "macroProgress": "મેક્રો લક્ષ્ય પ્રગતિ",
+  "weekShort": "અઠવાડિયું {num}",
+  "analyticsDetail": "વિસ્તૃત અહેવાલ",
+  "viewDetailedReport": "વિસ્તૃત અહેવાલ જુઓ",
+  "nutritionGrade": "પોષણ ગ્રેડ",
+  "mealBreakdown": "ભોજન શ્રેણી વિગતો",
+  "recommendations": "સ્વાસ્થ્ય ભલામણો",
+  "hydrationScore": "શ્રેષ્ઠ હાઇડ્રેશન",
+  "nutritionScoreText": "94/100 પોષણ ગ્રેડ — ઉત્કૃષ્ટ સંતુલન!",
+  "totalMacros": "કુલ મેક્રોઝ",
+  "hydrationTarget": "2.5L / 3.0L લક્ષ્ય — પાણીનું સેવન ચાલુ રાખો!",
+  "proteinAdvice": "સતત પ્રોટીનનું સેવન સ્નાયુઓની પુનઃપ્રાપ્તિમાં મદદ કરે છે."
 }
+
+
+
+

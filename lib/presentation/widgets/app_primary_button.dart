@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_sizes.dart';
+import '../../core/utils/haptic_helper.dart';
 
 /// Custom reusable primary action button used across auth and form screens.
 class AppPrimaryButton extends StatelessWidget {
@@ -29,7 +30,12 @@ class AppPrimaryButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      onTap: _buttonAction,
+      onTap: _buttonAction == null
+          ? null
+          : () {
+              HapticHelper.lightImpact();
+              _buttonAction!();
+            },
       child: Container(
         width: double.infinity,
         height: AppSizes.buttonHeight,

@@ -13,8 +13,10 @@ class LanguageScreen extends StatelessWidget {
 
   static const List<Map<String, String>> _supportedLanguages = [
     {'code': 'en', 'name': 'English'},
-    {'code': 'hi', 'name': 'हिंदी'},
-    {'code': 'gu', 'name': 'ગુજરાતી'},
+    {'code': 'ar', 'name': 'العربية (Arabic)'},
+    {'code': 'de', 'name': 'Deutsch (German)'},
+    {'code': 'hi', 'name': 'हिंदी (Hindi)'},
+    {'code': 'gu', 'name': 'ગુજરાતી (Gujarati)'},
     {'code': 'es', 'name': 'Español (Spanish)'},
     {'code': 'fr', 'name': 'Français (French)'},
   ];

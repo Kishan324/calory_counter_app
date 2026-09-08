@@ -39,9 +39,25 @@ class HistoryController extends GetxController {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
+  bool isToday(DateTime date) {
+    return isSameDay(date, DateTime.now());
+  }
+
+  /// Returns true if selectedDate is before today (meaning navigating forward 1 day is valid)
+  bool canGoNext(DateTime date) {
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final targetDate = DateTime(date.year, date.month, date.day);
+    return targetDate.isBefore(todayDate);
+  }
+
   void changeDate(DateTime date) {
-    final today = DateTime.now();
-    if (date.isAfter(today) && !isSameDay(date, today)) {
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final targetDate = DateTime(date.year, date.month, date.day);
+
+    // Strict Future Date Guard: Never allow selecting any date after today
+    if (targetDate.isAfter(todayDate)) {
       return;
     }
 

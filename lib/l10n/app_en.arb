@@ -109,5 +109,55 @@
   "invalidCalories": "Please enter a valid daily calorie target",
   "errorLoadingProfile": "Failed to load profile",
   "saving": "Saving...",
-  "save": "Save"
+  "save": "Save",
+  "healthScore": "Health Score",
+  "dietQuality": "Diet Quality",
+  "dayStreak": "{count} Day Streak",
+  "@dayStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "weekly": "Weekly",
+  "monthly": "Monthly",
+  "excellent": "Excellent",
+  "onTrack": "On Track",
+  "smartInsights": "Smart Insights",
+  "insightProteinMessage": "Great job! Protein target was met consistently this period.",
+  "insightCalorieMessage": "Average intake is {avg} kcal/day, aligned with your target.",
+  "@insightCalorieMessage": {
+    "placeholders": {
+      "avg": {
+        "type": "String",
+        "example": "2,100"
+      }
+    }
+  },
+  "target": "Target",
+  "macroProgress": "Macro Target Progress",
+  "weekShort": "Wk {num}",
+  "@weekShort": {
+    "placeholders": {
+      "num": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "analyticsDetail": "Detailed Report",
+  "viewDetailedReport": "View Detailed Report",
+  "nutritionGrade": "Nutrition Grade",
+  "mealBreakdown": "Meal Category Breakdown",
+  "recommendations": "Health Recommendations",
+  "hydrationScore": "Optimal Hydration",
+  "nutritionScoreText": "94/100 Nutrition Grade — Outstanding balance!",
+  "totalMacros": "Total Macros",
+  "hydrationTarget": "2.5L / 3.0L Target — Keep up the water intake!",
+  "proteinAdvice": "Consistent protein distribution supports muscle recovery."
 }
+
+
+

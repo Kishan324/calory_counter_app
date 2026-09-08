@@ -10,6 +10,7 @@ import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_sizes.dart';
 import '../../core/theme/app_space.dart';
+import '../../core/utils/haptic_helper.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -114,7 +115,10 @@ class _BottomNavItem extends StatelessWidget {
         isSelected ? primaryColor : (isDark ? AppColors.white54 : AppColors.textSubLight);
 
     return GestureDetector(
-      onTap: () => onTap(index),
+      onTap: () {
+        HapticHelper.lightImpact();
+        onTap(index);
+      },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 75.w,

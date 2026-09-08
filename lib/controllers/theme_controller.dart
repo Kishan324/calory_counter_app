@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_storage_keys.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/haptic_helper.dart';
 import '../core/utils/toast_helper.dart';
 
 enum AppThemeType { system, light, dark, mint, berry, sunset, ocean }
@@ -59,6 +60,9 @@ class ThemeController extends GetxController with WidgetsBindingObserver {
     if (_themeType.value == type) return;
     _themeType.value = type;
 
+    // Tactile Haptic Feedback on Theme Switch
+    HapticHelper.selectionClick();
+
     // Synchronize selected theme mode dynamically in GetX
     Get.changeThemeMode(themeMode);
     Get.changeTheme(themeData);
@@ -71,29 +75,11 @@ class ThemeController extends GetxController with WidgetsBindingObserver {
     }
 
     ToastHelper.showSuccess(
-      "Theme updated to ${_getThemeDisplayName(type)}",
+      "Theme updated successfully",
       title: "Appearance",
     );
   }
 
-  String _getThemeDisplayName(AppThemeType type) {
-    switch (type) {
-      case AppThemeType.system:
-        return 'System Default';
-      case AppThemeType.light:
-        return 'Light (Green)';
-      case AppThemeType.dark:
-        return 'Dark (Teal)';
-      case AppThemeType.mint:
-        return 'Mint Pastel';
-      case AppThemeType.berry:
-        return 'Berry Pink';
-      case AppThemeType.sunset:
-        return 'Sunset Orange';
-      case AppThemeType.ocean:
-        return 'Ocean Blue';
-    }
-  }
 
   ThemeMode get themeMode {
     if (_themeType.value == AppThemeType.system) return ThemeMode.system;
