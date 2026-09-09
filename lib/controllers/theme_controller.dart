@@ -29,6 +29,12 @@ class ThemeController extends GetxController with WidgetsBindingObserver {
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Ensure the GetMaterialApp root is synchronized with the saved theme on startup
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.changeThemeMode(themeMode);
+      Get.changeTheme(themeData);
+    });
   }
 
   @override
@@ -57,13 +63,10 @@ class ThemeController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<void> setThemeType(AppThemeType type) async {
-    if (_themeType.value == type) return;
-    _themeType.value = type;
-
-    // Tactile Haptic Feedback on Theme Switch
     HapticHelper.selectionClick();
 
-    // Synchronize selected theme mode dynamically in GetX
+    _themeType.value = type;
+
     Get.changeThemeMode(themeMode);
     Get.changeTheme(themeData);
 
@@ -114,5 +117,14 @@ class ThemeController extends GetxController with WidgetsBindingObserver {
       return AppTheme.darkTheme;
     }
     return themeData;
+  }
+
+  bool get isDarkMode {
+    if (_themeType.value == AppThemeType.dark) return true;
+    if (_themeType.value == AppThemeType.system) {
+      return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+          Brightness.dark;
+    }
+    return themeData.brightness == Brightness.dark;
   }
 }

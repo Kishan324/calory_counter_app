@@ -102,21 +102,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _showLockRetryDialog(bool isFirstTime, bool isLoggedIn) {
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         backgroundColor: theme.colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.border24),
-        title: Text('App Locked', style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold)),
-        content: Text('Authentication is required to access your data.', style: theme.textTheme.bodyMedium),
+        title: Text(loc?.preferences ?? 'App Locked', style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold)),
+        content: Text(loc?.authenticateToUnlock ?? 'Authentication is required to access your data.', style: theme.textTheme.bodyMedium),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _navigateToNext();
             },
-            child: Text('Retry', style: theme.textTheme.labelLarge!.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+            child: Text(loc?.continueBtn ?? 'Retry', style: theme.textTheme.labelLarge!.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -141,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   width: 120.w,
                   height: 120.w,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -162,7 +163,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 Text(
                   'Calory Counter and Diet App',
                   style: theme.textTheme.bodyMedium!.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],

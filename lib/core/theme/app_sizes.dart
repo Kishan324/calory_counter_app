@@ -12,7 +12,7 @@ class AppSizes {
 
   // Container Dimensions
   static double get buttonHeight => 56.h;
-  static double get navBarHeight => 70.h;
+  static double get navBarHeight => 74.h;
   static double get avatarSizeLg => 120.w;
   static double get avatarSizeMd => 64.w;
 }

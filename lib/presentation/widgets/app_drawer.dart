@@ -54,7 +54,7 @@ class AppDrawer extends StatelessWidget {
                   ),
                 ),
                 selected: isHistorySelected,
-                selectedTileColor: theme.colorScheme.primary.withOpacity(0.1),
+                selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.1),
                 onTap: () {
                   Get.back();
                   if (!isHistorySelected) {

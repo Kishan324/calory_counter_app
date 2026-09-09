@@ -33,11 +33,11 @@ class AuthEntryScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: isDark
                       ? [
-                          theme.colorScheme.primary.withOpacity(0.15),
+                          theme.colorScheme.primary.withValues(alpha: 0.15),
                           theme.scaffoldBackgroundColor,
                         ]
                       : [
-                          theme.colorScheme.primary.withOpacity(0.08),
+                          theme.colorScheme.primary.withValues(alpha: 0.08),
                           theme.scaffoldBackgroundColor,
                         ],
                 ),
@@ -45,16 +45,17 @@ class AuthEntryScreen extends StatelessWidget {
             ),
           ),
           SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               padding: AppPadding.symmetricH24,
               child: Column(
                 children: [
-                  const Spacer(),
+                  const VSpace40(),
                   Container(
                     width: 100.w,
                     height: 100.w,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.12),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -76,11 +77,11 @@ class AuthEntryScreen extends StatelessWidget {
                   Text(
                     loc.authTagline,
                     style: theme.textTheme.bodyLarge!.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const Spacer(),
+                  const VSpace48(),
                   _AuthButton(
                     label: loc.login,
                     isPrimary: true,
@@ -130,15 +131,15 @@ class _AuthButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: isPrimary
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.surface.withOpacity(0.1),
+                  : theme.colorScheme.surface.withValues(alpha: 0.1),
               borderRadius: AppRadius.border20,
               border: Border.all(
-                color: theme.colorScheme.primary.withOpacity(0.2),
+                color: theme.colorScheme.primary.withValues(alpha: 0.2),
               ),
               boxShadow: [
                 BoxShadow(
                   color: isPrimary
-                      ? theme.colorScheme.primary.withOpacity(0.3)
+                      ? theme.colorScheme.primary.withValues(alpha: 0.3)
                       : AppColors.transparent,
                   blurRadius: 15,
                   offset: const Offset(0, 8),

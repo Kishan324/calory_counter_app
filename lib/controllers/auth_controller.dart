@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../core/constants/app_storage_keys.dart';
 import '../core/utils/toast_helper.dart';
 import '../data/local/shared_prefs_helper.dart';
 import '../data/repositories/auth_repository.dart';
@@ -45,7 +42,7 @@ class AuthController extends GetxController {
 
   /// Authenticates user against backend API
   Future<bool> login({required String email, required String password}) async {
-    if (email.isEmpty || password.isEmpty) {
+    if (email.trim().isEmpty || password.trim().isEmpty) {
       ToastHelper.showError("Email and password cannot be empty");
       return false;
     }
@@ -58,17 +55,11 @@ class AuthController extends GetxController {
 
       if (response['data']['token'] != null) {
         final String token = response['data']['token'].toString();
-        debugPrint("==== DEBUG PHASE 1: TOKEN RECEIVED ====");
-        debugPrint("API RESPONSE TOKEN: $token");
-
-        final prefs = await SharedPreferences.getInstance();
-        final isSaved = await prefs.setString(AppStorageKeys.authToken, token);
-        debugPrint("PREFS.SET_STRING RETURNED SUCCESS?: $isSaved");
-
-        await SharedPrefsHelper.saveUserEmail(email);
+        await SharedPrefsHelper.saveToken(token);
+        await SharedPrefsHelper.saveUserEmail(email.trim());
 
         _isLoggedIn.value = true;
-        _userEmail.value = email;
+        _userEmail.value = email.trim();
 
         ToastHelper.showSuccess(response['data']['message'] ?? "Login successful!");
         _setLoading(false);
@@ -92,17 +83,17 @@ class AuthController extends GetxController {
     required String password,
     required String confirmPassword,
   }) async {
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.trim().isEmpty || email.trim().isEmpty || password.trim().isEmpty) {
       ToastHelper.showError("All fields are required");
       return false;
     }
 
-    if (password.length < 6) {
+    if (password.trim().length < 6) {
       ToastHelper.showError("Password must be at least 6 characters");
       return false;
     }
 
-    if (password != confirmPassword) {
+    if (password.trim() != confirmPassword.trim()) {
       ToastHelper.showError("Passwords do not match");
       return false;
     }

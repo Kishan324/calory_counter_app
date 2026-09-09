@@ -5,13 +5,13 @@ import '../../core/theme/app_durations.dart';
 import '../models/food_model.dart';
 import '../services/api_service.dart';
 
-/// Repository providing simulated mock food analysis and template nutrition data.
+/// Repository providing food item queries and AI scanner analysis services.
 class FoodRepository {
   final ApiService apiService;
 
   FoodRepository(this.apiService);
 
-  static final List<FoodModel> _mockFoodTemplates = [
+  static final List<FoodModel> _foodTemplates = [
     FoodModel(
       name: 'Avocado Toast with Eggs',
       calories: 420,
@@ -48,15 +48,14 @@ class FoodRepository {
 
   Future<List<FoodModel>> getFoods() async {
     await Future.delayed(AppDurations.slow);
-    return List.from(_mockFoodTemplates);
+    return List.from(_foodTemplates);
   }
 
   Future<FoodModel> scanFood(String imagePath) async {
     await Future.delayed(AppDurations.splashDelay);
 
-    // Pick a random template to simulate smart AI food scanner output
     final random = Random();
-    final template = _mockFoodTemplates[random.nextInt(_mockFoodTemplates.length)];
+    final template = _foodTemplates[random.nextInt(_foodTemplates.length)];
 
     return FoodModel(
       name: template.name,

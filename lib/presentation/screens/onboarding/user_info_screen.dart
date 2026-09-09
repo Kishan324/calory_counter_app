@@ -14,7 +14,7 @@ import '../../../core/theme/app_space.dart';
 /// via callbacks to keep this widget purely presentational.
 class UserInfoScreen extends StatelessWidget {
   const UserInfoScreen({
-    Key? key,
+    super.key,
     required this.selectedGender,
     required this.selectedDate,
     required this.weightController,
@@ -22,7 +22,7 @@ class UserInfoScreen extends StatelessWidget {
     required this.formError,
     required this.onGenderSelected,
     required this.onDateSelected,
-  }) : super(key: key);
+  });
 
   final String selectedGender;
   final DateTime? selectedDate;
@@ -68,7 +68,7 @@ class UserInfoScreen extends StatelessWidget {
               Text(
                 loc.enterDetailsSubtitle,
                 style: theme.textTheme.bodyMedium!.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.65),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                   fontSize: 14.sp,
                 ),
               ),
@@ -80,17 +80,17 @@ class UserInfoScreen extends StatelessWidget {
                 padding: EdgeInsets.all(AppPadding.padding20),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? AppColors.white.withOpacity(0.06)
+                      ? AppColors.white.withValues(alpha: 0.06)
                       : theme.colorScheme.surface,
                   borderRadius: AppRadius.border24,
                   border: Border.all(
                     color: isDark
-                        ? AppColors.white.withOpacity(0.12)
-                        : AppColors.black.withOpacity(0.08),
+                        ? AppColors.white.withValues(alpha: 0.12)
+                        : AppColors.black.withValues(alpha: 0.08),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withOpacity(isDark ? 0.2 : 0.05),
+                      color: AppColors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -171,13 +171,13 @@ class UserInfoScreen extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isDark
-                              ? AppColors.white.withOpacity(0.05)
+                              ? AppColors.white.withValues(alpha: 0.05)
                               : theme.colorScheme.surface,
                           borderRadius: AppRadius.border14,
                           border: Border.all(
                             color: selectedDate != null
-                                ? theme.colorScheme.primary.withOpacity(0.6)
-                                : theme.colorScheme.onSurface.withOpacity(0.12),
+                                ? theme.colorScheme.primary.withValues(alpha: 0.6)
+                                : theme.colorScheme.onSurface.withValues(alpha: 0.12),
                           ),
                         ),
                         child: Row(
@@ -195,7 +195,7 @@ class UserInfoScreen extends StatelessWidget {
                               style: theme.textTheme.bodyLarge!.copyWith(
                                 color: selectedDate != null
                                     ? theme.colorScheme.onSurface
-                                    : theme.colorScheme.onSurface.withOpacity(0.4),
+                                    : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                                 fontWeight: selectedDate != null
                                     ? FontWeight.w600
                                     : FontWeight.w400,
@@ -291,19 +291,19 @@ class _GenderChip extends StatelessWidget {
             color: isSelected
                 ? theme.colorScheme.primary
                 : isDark
-                    ? AppColors.white.withOpacity(0.05)
+                    ? AppColors.white.withValues(alpha: 0.05)
                     : theme.colorScheme.surface,
             borderRadius: AppRadius.border14,
             border: Border.all(
               color: isSelected
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface.withOpacity(0.12),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.12),
               width: isSelected ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
                 color: isSelected
-                    ? theme.colorScheme.primary.withOpacity(0.35)
+                    ? theme.colorScheme.primary.withValues(alpha: 0.35)
                     : AppColors.transparent,
                 blurRadius: 10,
                 offset: const Offset(0, 3),
@@ -316,19 +316,22 @@ class _GenderChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 18.sp,
-                color: isSelected ? AppColors.white : theme.colorScheme.onSurface.withOpacity(0.7),
+                color: isSelected ? AppColors.white : theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               SizedBox(width: 4.w),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium!.copyWith(
-                  color: isSelected ? AppColors.white : theme.colorScheme.onSurface,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  fontSize: 13.sp,
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium!.copyWith(
+                      color: isSelected ? AppColors.white : theme.colorScheme.onSurface,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontSize: 13.sp,
+                    ),
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -381,14 +384,14 @@ class _InfoField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: unitLabel == 'kg' ? 'e.g. 70' : 'e.g. 175',
             hintStyle: theme.textTheme.bodyMedium!.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.35),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: AppPadding.padding14,
               vertical: AppPadding.padding12,
             ),
             filled: true,
-            fillColor: isDark ? AppColors.white.withOpacity(0.05) : theme.colorScheme.surface,
+            fillColor: isDark ? AppColors.white.withValues(alpha: 0.05) : theme.colorScheme.surface,
             suffixIcon: Container(
               padding: EdgeInsets.symmetric(horizontal: AppPadding.padding10),
               child: Center(
@@ -405,13 +408,13 @@ class _InfoField extends StatelessWidget {
             border: OutlineInputBorder(
               borderRadius: AppRadius.border14,
               borderSide: BorderSide(
-                color: theme.colorScheme.onSurface.withOpacity(0.12),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.12),
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppRadius.border14,
               borderSide: BorderSide(
-                color: theme.colorScheme.onSurface.withOpacity(0.12),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.12),
               ),
             ),
             focusedBorder: OutlineInputBorder(

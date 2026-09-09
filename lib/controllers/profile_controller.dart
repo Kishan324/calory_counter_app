@@ -20,6 +20,7 @@ class ProfileController extends GetxController {
   String? get profileImageUrl => _profile.value?.profileImage;
   double? get weightGoal => _profile.value?.weightGoal;
   int? get dailyCalories => _profile.value?.dailyCalories;
+  DateTime? get birthDate => _profile.value?.birthDate;
 
   ProfileController(this._profileRepository);
 
@@ -40,7 +41,9 @@ class ProfileController extends GetxController {
     try {
       _profile.value = await _profileRepository.getProfile();
     } catch (e) {
-      debugPrint("Error fetching profile: $e");
+      if (kDebugMode) {
+        debugPrint("Error fetching profile: $e");
+      }
     } finally {
       if (!silent) {
         _setLoading(false);
@@ -48,13 +51,15 @@ class ProfileController extends GetxController {
     }
   }
 
-  /// Updates profile details such as name, avatar image, weight goal, or calories target
+  /// Updates profile details such as name, avatar image, weight goal, calories target, or birth date
   Future<bool> updateProfileDetails({
     String? name,
     String? imagePath,
     double? weightGoal,
     int? dailyCalories,
+    DateTime? birthDate,
     required String successMessage,
+    bool navigateBack = true,
   }) async {
     _setSaving(true);
     try {
@@ -63,11 +68,14 @@ class ProfileController extends GetxController {
         imagePath: imagePath,
         weightGoal: weightGoal ?? _profile.value?.weightGoal,
         dailyCalories: dailyCalories ?? _profile.value?.dailyCalories,
+        birthDate: birthDate ?? _profile.value?.birthDate,
       );
       _profile.value = updatedProfile;
       _profile.refresh();
       _setSaving(false);
-      Get.back();
+      if (navigateBack) {
+        Get.back();
+      }
       ToastHelper.showSuccess(successMessage);
       return true;
     } catch (e) {

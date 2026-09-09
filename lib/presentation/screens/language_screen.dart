@@ -5,36 +5,37 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_padding.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_shadows.dart';
+import '../widgets/app_back_button.dart';
 import '../../controllers/locale_controller.dart';
 
-/// Screen for changing active app localization language using GetX.
+/// Screen allowing dynamic user language selection from the 7 supported locales.
 class LanguageScreen extends StatelessWidget {
-  const LanguageScreen({Key? key}) : super(key: key);
+  const LanguageScreen({super.key});
 
   static const List<Map<String, String>> _supportedLanguages = [
     {'code': 'en', 'name': 'English'},
-    {'code': 'ar', 'name': 'العربية (Arabic)'},
     {'code': 'de', 'name': 'Deutsch (German)'},
     {'code': 'hi', 'name': 'हिंदी (Hindi)'},
     {'code': 'gu', 'name': 'ગુજરાતી (Gujarati)'},
-    {'code': 'es', 'name': 'Español (Spanish)'},
+    {'code': 'ar', 'name': 'العربية (Arabic)'},
     {'code': 'fr', 'name': 'Français (French)'},
+    {'code': 'es', 'name': 'Español (Spanish)'},
   ];
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final localeController = Get.find<LocaleController>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(AppLocalizations.of(context)!.languageSelection,
             style: theme.textTheme.headlineMedium),
         backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
-        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
       body: SafeArea(
         child: Obx(() {
@@ -63,7 +64,7 @@ class LanguageScreen extends StatelessWidget {
                     border: Border.all(
                       color: isSelected
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface.withOpacity(0.05),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.05),
                       width: isSelected ? 2 : 1,
                     ),
                     boxShadow: AppShadows.cardSubtle(theme.brightness == Brightness.dark),

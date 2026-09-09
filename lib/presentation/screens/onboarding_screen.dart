@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -18,7 +17,7 @@ import 'onboarding/all_set_screen.dart';
 
 /// Parent onboarding screen owning PageController, page indicators, and profile intake state via GetX.
 class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +43,12 @@ class OnboardingScreen extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: isDark
                       ? [
-                          theme.colorScheme.primary.withOpacity(0.14),
+                          theme.colorScheme.primary.withValues(alpha: 0.14),
                           theme.scaffoldBackgroundColor,
                           theme.scaffoldBackgroundColor,
                         ]
                       : [
-                          theme.colorScheme.primary.withOpacity(0.07),
+                          theme.colorScheme.primary.withValues(alpha: 0.07),
                           theme.scaffoldBackgroundColor,
                           theme.scaffoldBackgroundColor,
                         ],
@@ -67,8 +66,8 @@ class OnboardingScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    theme.colorScheme.primary.withOpacity(isDark ? 0.20 : 0.10),
-                    theme.colorScheme.primary.withOpacity(0.0),
+                    theme.colorScheme.primary.withValues(alpha: isDark ? 0.20 : 0.10),
+                    theme.colorScheme.primary.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -120,17 +119,17 @@ class OnboardingScreen extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isDark
-                              ? AppColors.white.withOpacity(0.08)
+                              ? AppColors.white.withValues(alpha: 0.08)
                               : theme.colorScheme.surface,
                           borderRadius: AppRadius.border20,
                           border: Border.all(
                             color: isDark
-                                ? AppColors.white.withOpacity(0.12)
-                                : AppColors.black.withOpacity(0.08),
+                                ? AppColors.white.withValues(alpha: 0.12)
+                                : AppColors.black.withValues(alpha: 0.08),
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.black.withOpacity(0.04),
+                              color: AppColors.black.withValues(alpha: 0.04),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -160,17 +159,17 @@ class OnboardingScreen extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isDark
-                                      ? AppColors.white.withOpacity(0.08)
+                                      ? AppColors.white.withValues(alpha: 0.08)
                                       : theme.colorScheme.surface,
                                   borderRadius: AppRadius.border20,
                                   border: Border.all(
                                     color: isDark
-                                        ? AppColors.white.withOpacity(0.12)
-                                        : AppColors.black.withOpacity(0.08),
+                                        ? AppColors.white.withValues(alpha: 0.12)
+                                        : AppColors.black.withValues(alpha: 0.08),
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.black.withOpacity(0.04),
+                                      color: AppColors.black.withValues(alpha: 0.04),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -179,7 +178,7 @@ class OnboardingScreen extends StatelessWidget {
                                 child: Text(
                                   loc.skip,
                                   style: theme.textTheme.bodyMedium!.copyWith(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13.sp,
                                   ),
@@ -223,12 +222,12 @@ class OnboardingScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: isActive
                                     ? theme.colorScheme.primary
-                                    : theme.colorScheme.onSurface.withOpacity(0.2),
+                                    : theme.colorScheme.onSurface.withValues(alpha: 0.2),
                                 borderRadius: AppRadius.border10,
                                 boxShadow: [
                                   BoxShadow(
                                     color: isActive
-                                        ? theme.colorScheme.primary.withOpacity(0.4)
+                                        ? theme.colorScheme.primary.withValues(alpha: 0.4)
                                         : AppColors.transparent,
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
@@ -262,4 +261,3 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 }
-

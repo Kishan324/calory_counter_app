@@ -5,7 +5,7 @@ import '../core/theme/app_durations.dart';
 import '../data/models/history_model.dart';
 import '../data/services/api_service.dart';
 
-/// Manages historical food consumption logs and date navigation using simulated mock data.
+/// Manages historical food consumption logs and date navigation.
 class HistoryController extends GetxController {
   final ApiService _apiService;
 
@@ -80,8 +80,8 @@ class HistoryController extends GetxController {
 
     await Future.delayed(AppDurations.normal);
 
-    // Dynamic mock items for selected date
-    final List<HistoryModel> mockItems = [
+    // Sample history items for selected date
+    final List<HistoryModel> historyItems = [
       HistoryModel(
         id: 1001,
         name: 'Oatmeal & Fresh Berries',
@@ -112,8 +112,8 @@ class HistoryController extends GetxController {
       ),
     ];
 
-    _historyList.assignAll(mockItems);
-    _totalItems.value = mockItems.length;
+    _historyList.assignAll(historyItems);
+    _totalItems.value = historyItems.length;
     _isLoading.value = false;
   }
 }

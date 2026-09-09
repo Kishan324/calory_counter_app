@@ -41,13 +41,13 @@ class AppPrimaryButton extends StatelessWidget {
         height: AppSizes.buttonHeight,
         decoration: BoxDecoration(
           color: _buttonAction == null
-              ? theme.colorScheme.primary.withOpacity(0.5)
+              ? theme.colorScheme.primary.withValues(alpha: 0.5)
               : theme.colorScheme.primary,
           borderRadius: AppRadius.border16,
           boxShadow: [
             BoxShadow(
               color: _buttonAction != null
-                  ? theme.colorScheme.primary.withOpacity(0.3)
+                  ? theme.colorScheme.primary.withValues(alpha: 0.3)
                   : AppColors.transparent,
               blurRadius: 15,
               offset: const Offset(0, 8),

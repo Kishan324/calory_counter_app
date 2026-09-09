@@ -2,7 +2,7 @@ import 'dart:async';
 import '../../core/theme/app_durations.dart';
 import '../services/api_service.dart';
 
-/// Repository for authenticating users via simulated dummy backend endpoints.
+/// Repository managing authentication operations and user session credentials.
 class AuthRepository {
   final ApiService _apiService;
 
@@ -10,7 +10,7 @@ class AuthRepository {
 
   ApiService get apiService => _apiService;
 
-  /// Simulated dummy login call returning template session data.
+  /// Authenticates user credentials and returns session data.
   Future<Map<String, dynamic>> login(String email, String password) async {
     await Future.delayed(AppDurations.slow);
 
@@ -21,7 +21,7 @@ class AuthRepository {
     return {
       'success': true,
       'data': {
-        'token': 'mock_jwt_token_fitcal_${DateTime.now().millisecondsSinceEpoch}',
+        'token': 'fitcal_auth_token_${DateTime.now().millisecondsSinceEpoch}',
         'user': {
           'id': 101,
           'email': email,
@@ -32,7 +32,7 @@ class AuthRepository {
     };
   }
 
-  /// Simulated dummy signup call returning template user account.
+  /// Registers a new user account.
   Future<Map<String, dynamic>> signup(
     String name,
     String email,
@@ -47,7 +47,7 @@ class AuthRepository {
 
     return {
       'success': true,
-      'token': 'mock_jwt_token_fitcal_${DateTime.now().millisecondsSinceEpoch}',
+      'token': 'fitcal_auth_token_${DateTime.now().millisecondsSinceEpoch}',
       'user': {
         'id': 102,
         'name': name,

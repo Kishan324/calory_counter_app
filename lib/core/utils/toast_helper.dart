@@ -343,16 +343,16 @@ class ToastHelper {
               padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
               decoration: BoxDecoration(
                 color: isDark
-                    ? AppColors.black.withOpacity(0.7)
-                    : AppColors.white.withOpacity(0.85),
+                    ? AppColors.black.withValues(alpha: 0.7)
+                    : AppColors.white.withValues(alpha: 0.85),
                 borderRadius: AppRadius.border20,
                 border: Border.all(
-                  color: accentColor.withOpacity(0.35),
+                  color: accentColor.withValues(alpha: 0.35),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: accentColor.withOpacity(0.18),
+                    color: accentColor.withValues(alpha: 0.18),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -363,7 +363,7 @@ class ToastHelper {
                   Container(
                     padding: EdgeInsets.all(10.w),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.15),
+                      color: accentColor.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -395,8 +395,7 @@ class ToastHelper {
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w500,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 4,
                         ),
                       ],
                     ),

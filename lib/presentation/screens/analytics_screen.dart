@@ -17,7 +17,7 @@ import '../../core/utils/haptic_helper.dart';
 import 'analytics_detail_screen.dart';
 
 class AnalyticsScreen extends StatelessWidget {
-  const AnalyticsScreen({Key? key}) : super(key: key);
+  const AnalyticsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +33,16 @@ class AnalyticsScreen extends StatelessWidget {
         backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: loc.exportReport,
+            onPressed: () {
+              controller.exportNutritionReport(context);
+            },
+          ),
+          const HSpace8(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -271,7 +281,7 @@ class AnalyticsScreen extends StatelessWidget {
                                   width: 7.w,
                                   height: 7.h,
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFF69F0AE), // Pulsing Neon Emerald Dot
+                                    color: Color(0xFF69F0AE),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -287,8 +297,6 @@ class AnalyticsScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-
-                          // Radiant 3D Gold Flame Streak Badge with Shadow Glow
                           Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: 14.w,
@@ -297,8 +305,8 @@ class AnalyticsScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [
-                                  Color(0xFFFFE082), // Amber Light Gold
-                                  Color(0xFFFF8F00), // Deep Golden Amber
+                                  Color(0xFFFFE082),
+                                  Color(0xFFFF8F00),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -540,15 +548,16 @@ class AnalyticsScreen extends StatelessWidget {
           Icon(icon, color: iconColor, size: 14.sp),
           const HSpace4(),
           Flexible(
-            child: Text(
-              label,
-              style: theme.textTheme.labelSmall!.copyWith(
-                color: AppColors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 11.sp,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: theme.textTheme.labelSmall!.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 11.sp,
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -670,17 +679,19 @@ class AnalyticsScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    loc.caloriesConsumed,
-                    style: theme.textTheme.titleLarge,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      loc.caloriesConsumed,
+                      style: theme.textTheme.titleLarge,
+                    ),
                   ),
                 ),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.12),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: AppRadius.border12,
                   ),
                   child: Text(
@@ -824,7 +835,7 @@ class AnalyticsScreen extends StatelessWidget {
             show: true,
             toY: maxY,
             color: theme.colorScheme.onSurface
-                .withOpacity(isDark ? 0.1 : 0.05),
+                .withValues(alpha: isDark ? 0.1 : 0.05),
           ),
         ),
       ],
@@ -921,7 +932,7 @@ class AnalyticsScreen extends StatelessWidget {
                 '$current / $target',
                 style: theme.textTheme.labelMedium!.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -932,7 +943,7 @@ class AnalyticsScreen extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8.h,
-              backgroundColor: color.withOpacity(0.15),
+              backgroundColor: color.withValues(alpha: 0.15),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -968,7 +979,7 @@ class AnalyticsScreen extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.15),
                     borderRadius: AppRadius.border12,
                   ),
                   child: Icon(
@@ -990,7 +1001,7 @@ class AnalyticsScreen extends StatelessWidget {
             ),
             const VSpace14(),
             Divider(
-              color: theme.colorScheme.onSurface.withOpacity(0.08),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
               height: 1,
             ),
             const VSpace14(),
@@ -999,7 +1010,7 @@ class AnalyticsScreen extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.15),
+                    color: AppColors.accent.withValues(alpha: 0.15),
                     borderRadius: AppRadius.border12,
                   ),
                   child: Icon(

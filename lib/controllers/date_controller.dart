@@ -44,7 +44,6 @@ class DateController extends GetxController {
   int get selectedIndex => _selectedIndex.value;
 
   static const List<DateNutrition> _dailyData = [
-    // Index 0 (6 days ago)
     DateNutrition(
       consumedCalories: 1350,
       totalCalories: 2000,
@@ -59,7 +58,6 @@ class DateController extends GetxController {
       snacksCalories: 140,
       dinnerCalories: 370,
     ),
-    // Index 1 (5 days ago)
     DateNutrition(
       consumedCalories: 1620,
       totalCalories: 2000,
@@ -74,7 +72,6 @@ class DateController extends GetxController {
       snacksCalories: 180,
       dinnerCalories: 500,
     ),
-    // Index 2 (4 days ago)
     DateNutrition(
       consumedCalories: 980,
       totalCalories: 2000,
@@ -89,7 +86,6 @@ class DateController extends GetxController {
       snacksCalories: 90,
       dinnerCalories: 180,
     ),
-    // Index 3 (3 days ago)
     DateNutrition(
       consumedCalories: 1950,
       totalCalories: 2000,
@@ -104,7 +100,6 @@ class DateController extends GetxController {
       snacksCalories: 250,
       dinnerCalories: 530,
     ),
-    // Index 4 (2 days ago)
     DateNutrition(
       consumedCalories: 1420,
       totalCalories: 2000,
@@ -119,7 +114,6 @@ class DateController extends GetxController {
       snacksCalories: 150,
       dinnerCalories: 440,
     ),
-    // Index 5 (Yesterday)
     DateNutrition(
       consumedCalories: 1750,
       totalCalories: 2000,
@@ -134,7 +128,6 @@ class DateController extends GetxController {
       snacksCalories: 200,
       dinnerCalories: 550,
     ),
-    // Index 6 (Today)
     DateNutrition(
       consumedCalories: 1200,
       totalCalories: 2000,
@@ -150,6 +143,22 @@ class DateController extends GetxController {
       dinnerCalories: 280,
     ),
   ];
+
+  final RxInt currentWaterMl = 1250.obs;
+  final RxInt targetWaterMl = 2500.obs;
+  final RxInt streakDays = 5.obs;
+
+  double get waterRatio =>
+      (currentWaterMl.value / targetWaterMl.value).clamp(0.0, 1.0);
+
+  void addWaterIntake(int amountMl) {
+    currentWaterMl.value =
+        (currentWaterMl.value + amountMl).clamp(0, targetWaterMl.value * 2);
+  }
+
+  void resetWaterIntake() {
+    currentWaterMl.value = 0;
+  }
 
   DateNutrition get currentNutrition {
     final idx = _selectedIndex.value;

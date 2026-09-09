@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,12 +13,14 @@ import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_sizes.dart';
 import '../../core/theme/app_space.dart';
 import '../widgets/app_primary_button.dart';
+import '../widgets/app_back_button.dart';
+import '../widgets/app_glass_date_picker.dart';
 import '../../controllers/profile_controller.dart';
 import '../../controllers/edit_profile_controller.dart';
 
 /// User profile edit screen allowing name changes and avatar upload using GetX.
 class EditProfileScreen extends StatelessWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   ImageProvider? _getAvatarProvider(String? imageStr) {
     if (imageStr == null || imageStr.isEmpty) return null;
@@ -54,7 +57,7 @@ class EditProfileScreen extends StatelessWidget {
               topRight: Radius.circular(AppRadius.radius24),
             ),
             border: Border.all(
-              color: theme.colorScheme.primary.withOpacity(0.1),
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           padding: EdgeInsets.all(AppPadding.padding24),
@@ -114,10 +117,10 @@ class EditProfileScreen extends StatelessWidget {
         width: 120.w,
         padding: EdgeInsets.symmetric(vertical: AppPadding.padding16),
         decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withOpacity(0.05),
+          color: theme.colorScheme.primary.withValues(alpha: 0.05),
           borderRadius: AppRadius.border16,
           border: Border.all(
-            color: theme.colorScheme.primary.withOpacity(0.1),
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
           ),
         ),
         child: Column(
@@ -153,11 +156,11 @@ class EditProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(loc.editProfile, style: theme.textTheme.headlineMedium),
         backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
-        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -187,9 +190,9 @@ class EditProfileScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: theme.colorScheme.primary
-                                .withOpacity(isDark ? 0.2 : 0.1),
+                                .withValues(alpha: isDark ? 0.2 : 0.1),
                             border: Border.all(
-                              color: theme.colorScheme.primary.withOpacity(0.3),
+                              color: theme.colorScheme.primary.withValues(alpha: 0.3),
                               width: 3,
                             ),
                             image: avatarImage != null
@@ -248,6 +251,7 @@ class EditProfileScreen extends StatelessWidget {
                     return TextFormField(
                       controller: ctrl.nameController,
                       textCapitalization: TextCapitalization.words,
+                      inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'^\s+'))],
                       style: theme.textTheme.bodyLarge,
                       decoration: InputDecoration(
                         labelText: loc.name,
@@ -267,7 +271,7 @@ class EditProfileScreen extends StatelessWidget {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: AppRadius.border16,
                           borderSide: BorderSide(
-                            color: theme.colorScheme.onSurface.withOpacity(0.1),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -307,6 +311,15 @@ class EditProfileScreen extends StatelessWidget {
                       },
                     );
                   },
+                ),
+                const VSpace20(),
+                Obx(
+                  () => AppGlassDatePicker(
+                    label: loc.birthDate,
+                    hint: loc.selectDate,
+                    selectedDate: controller.selectedBirthDate.value,
+                    onDateSelected: (date) => controller.setBirthDate(date),
+                  ),
                 ),
                 const VSpace48(),
                 Obx(

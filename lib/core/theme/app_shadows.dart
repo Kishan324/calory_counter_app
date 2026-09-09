@@ -5,7 +5,7 @@ import 'app_colors.dart';
 class AppShadows {
   static List<BoxShadow> card(bool isDark) => [
         BoxShadow(
-          color: AppColors.black.withOpacity(isDark ? 0.3 : 0.03),
+          color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.03),
           blurRadius: 16,
           offset: const Offset(0, 6),
         ),
@@ -13,7 +13,7 @@ class AppShadows {
 
   static List<BoxShadow> cardSubtle(bool isDark) => [
         BoxShadow(
-          color: AppColors.black.withOpacity(isDark ? 0.3 : 0.02),
+          color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.02),
           blurRadius: 16,
           offset: const Offset(0, 6),
         ),
@@ -21,7 +21,7 @@ class AppShadows {
 
   static List<BoxShadow> header(bool isDark) => [
         BoxShadow(
-          color: AppColors.black.withOpacity(isDark ? 0.3 : 0.04),
+          color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.04),
           blurRadius: 24,
           offset: const Offset(0, 8),
         ),
@@ -29,7 +29,7 @@ class AppShadows {
 
   static List<BoxShadow> primaryButton(Color primaryColor) => [
         BoxShadow(
-          color: primaryColor.withOpacity(0.3),
+          color: primaryColor.withValues(alpha: 0.3),
           blurRadius: 15,
           offset: const Offset(0, 8),
         ),
@@ -37,7 +37,7 @@ class AppShadows {
 
   static List<BoxShadow> glassButton(Color primaryColor) => [
         BoxShadow(
-          color: primaryColor.withOpacity(0.4),
+          color: primaryColor.withValues(alpha: 0.4),
           blurRadius: 20,
           offset: const Offset(0, 8),
         ),

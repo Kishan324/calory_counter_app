@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../../core/network/api_endpoints.dart';
 import '../local/shared_prefs_helper.dart';
@@ -26,10 +27,10 @@ class ApiService {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Log request details
-          print('REQUEST[${options.method}] => PATH: ${options.path}');
+          if (kDebugMode) {
+            debugPrint('REQUEST[${options.method}] => PATH: ${options.path}');
+          }
           
-          // Auto attach token
           final token = await SharedPrefsHelper.getToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -38,19 +39,19 @@ class ApiService {
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          // Log response details
-          print('RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
+          if (kDebugMode) {
+            debugPrint('RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
+          }
           return handler.next(response);
         },
         onError: (DioException e, handler) async {
-          // Log error details and format message
-          print('ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}');
-          print('ERROR MESSAGE => ${e.message}');
+          if (kDebugMode) {
+            debugPrint('ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}');
+            debugPrint('ERROR MESSAGE => ${e.message}');
+          }
           
-          // Auto logout on 401 Unauthorized
           if (e.response?.statusCode == 401) {
             await SharedPrefsHelper.clearAuth();
-            // Depending on architecture, you can trigger a global logout event here or redirect.
           }
           
           return handler.next(_handleError(e));
@@ -87,7 +88,6 @@ class ApiService {
       break;
 
     case DioExceptionType.connectionError:
-      // 🔥 REAL FIX HERE
       if (error.message != null &&
           error.message!.contains("SocketException")) {
         errorDescription = "No Internet connection";
@@ -114,7 +114,6 @@ class ApiService {
   );
 }
 
-  // GET method
   Future<Response> get(String endpoint, {Map<String, dynamic>? queryParameters}) async {
     try {
       final response = await _dio.get(endpoint, queryParameters: queryParameters);
@@ -124,7 +123,6 @@ class ApiService {
     }
   }
 
-  // POST method
   Future<Response> post(String endpoint, {dynamic data, Map<String, dynamic>? queryParameters, Options? options}) async {
     try {
       final response = await _dio.post(
@@ -139,7 +137,6 @@ class ApiService {
     }
   }
 
-  // PUT method
   Future<Response> put(String endpoint, {dynamic data, Map<String, dynamic>? queryParameters}) async {
     try {
       final response = await _dio.put(endpoint, data: data, queryParameters: queryParameters);
@@ -149,7 +146,6 @@ class ApiService {
     }
   }
 
-  // DELETE method
   Future<Response> delete(String endpoint, {dynamic data, Map<String, dynamic>? queryParameters}) async {
     try {
       final response = await _dio.delete(endpoint, data: data, queryParameters: queryParameters);

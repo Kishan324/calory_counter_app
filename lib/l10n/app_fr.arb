@@ -124,7 +124,12 @@
   "nutritionScoreText": "Note 94/100 — Équilibre exceptionnel !",
   "totalMacros": "Macros Totaux",
   "hydrationTarget": "Objectif 2,5 L / 3,0 L — Continuez à bien vous hydrater !",
-  "proteinAdvice": "Une répartition régulière des protéines favorise la récupération musculaire."
+  "proteinAdvice": "Une répartition régulière des protéines favorise la récupération musculaire.",
+  "waterIntake": "Consommation d'eau",
+  "exportReport": "Exporter le rapport",
+  "reportExported": "Rapport de nutrition exporté",
+  "streakSubtitle": "Enregistrez vos repas quotidiens pour créer des habitudes saines !",
+  "keepItUp": "Continuez comme ça !"
 }
 
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -11,6 +12,7 @@ import '../../../controllers/auth_controller.dart';
 import '../../../controllers/login_controller.dart';
 import '../../widgets/app_glass_text_field.dart';
 import '../../widgets/app_primary_button.dart';
+import '../../widgets/app_back_button.dart';
 import 'signup_screen.dart';
 
 /// User login screen using GetX LoginController and design system tokens.
@@ -31,11 +33,7 @@ class LoginScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: theme.colorScheme.onSurface),
-          onPressed: () => Get.back(),
-        ),
+        leading: const AppBackButton(),
       ),
       body: Stack(
         children: [
@@ -47,11 +45,11 @@ class LoginScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: isDark
                       ? [
-                          theme.colorScheme.primary.withOpacity(0.15),
+                          theme.colorScheme.primary.withValues(alpha: 0.15),
                           theme.scaffoldBackgroundColor,
                         ]
                       : [
-                          theme.colorScheme.primary.withOpacity(0.08),
+                          theme.colorScheme.primary.withValues(alpha: 0.08),
                           theme.scaffoldBackgroundColor,
                         ],
                 ),
@@ -70,15 +68,16 @@ class LoginScreen extends StatelessWidget {
                     Text(
                       loc.welcomeBack,
                       style: theme.textTheme.headlineLarge!.copyWith(
-                        fontSize: 32.sp,
+                        fontSize: 26.sp,
                         fontWeight: FontWeight.bold,
+                        height: 1.2,
                       ),
                     ),
                     const VSpace8(),
                     Text(
                       loc.login,
                       style: theme.textTheme.bodyLarge!.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                     const VSpace48(),
@@ -87,12 +86,13 @@ class LoginScreen extends StatelessWidget {
                       label: loc.email,
                       hint: 'example@mail.com',
                       keyboardType: TextInputType.emailAddress,
+                      inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return loc.emailRequired;
                         }
                         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                            .hasMatch(value)) {
+                            .hasMatch(value.trim())) {
                           return loc.emailInvalid;
                         }
                         return null;
@@ -107,11 +107,12 @@ class LoginScreen extends StatelessWidget {
                         isPassword: true,
                         obscureText: controller.obscurePassword.value,
                         onToggleVisibility: controller.toggleObscurePassword,
+                        inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return loc.passwordRequired;
                           }
-                          if (value.length < 6) return loc.passwordTooShort;
+                          if (value.trim().length < 6) return loc.passwordTooShort;
                           return null;
                         },
                       ),
@@ -142,7 +143,7 @@ class LoginScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Divider(
-                            color: theme.colorScheme.onSurface.withOpacity(0.1),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                         Padding(
@@ -150,13 +151,13 @@ class LoginScreen extends StatelessWidget {
                           child: Text(
                             loc.orContinueWith,
                             style: theme.textTheme.bodySmall!.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                             ),
                           ),
                         ),
                         Expanded(
                           child: Divider(
-                            color: theme.colorScheme.onSurface.withOpacity(0.1),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
                         ),
                       ],
@@ -168,9 +169,9 @@ class LoginScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: theme.colorScheme.onSurface.withOpacity(0.1),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                           ),
-                          color: theme.colorScheme.surface.withOpacity(0.3),
+                          color: theme.colorScheme.surface.withValues(alpha: 0.3),
                         ),
                         child: Icon(Icons.g_mobiledata_rounded,
                             size: 40.sp, color: theme.colorScheme.onSurface),
@@ -183,7 +184,7 @@ class LoginScreen extends StatelessWidget {
                         Text(
                           loc.dontHaveAccount,
                           style: theme.textTheme.bodyMedium!.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                         TextButton(

@@ -12,6 +12,7 @@ import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_space.dart';
 import '../../core/utils/haptic_helper.dart';
 
+import '../widgets/app_back_button.dart';
 import '../../controllers/history_controller.dart';
 import '../../data/models/history_model.dart';
 import 'history_detail_screen.dart';
@@ -59,9 +60,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final isRtl = Localizations.localeOf(context).languageCode == 'ar';
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(l10n?.history ?? 'History'),
-        centerTitle: true,
+        leading: const AppBackButton(),
+        title: Text(l10n?.history ?? 'History', style: theme.textTheme.headlineMedium),
+        backgroundColor: AppColors.transparent,
+        elevation: 0,
+        centerTitle: false,
       ),
       floatingActionButton: Obx(() {
         final isToday = historyController.isSameDay(
@@ -263,7 +268,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             Icon(
               Icons.history_toggle_off_rounded,
               size: 80.sp,
-              color: theme.colorScheme.primary.withOpacity(0.35),
+              color: theme.colorScheme.primary.withValues(alpha: 0.35),
             ),
             const VSpace16(),
             Text(
@@ -295,14 +300,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
           decoration: BoxDecoration(
             borderRadius: AppRadius.border20,
             border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.08),
+              color: theme.colorScheme.outline.withValues(alpha: 0.08),
             ),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
                 theme.colorScheme.surface,
-                theme.colorScheme.surface.withOpacity(isDark ? 0.8 : 0.95),
+                theme.colorScheme.surface.withValues(alpha: isDark ? 0.8 : 0.95),
               ],
             ),
             boxShadow: AppShadows.card(isDark),
@@ -334,7 +339,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       (loadingProgress.expectedTotalBytes ?? 1)
                                   : null,
                               strokeWidth: 2,
-                              color: theme.colorScheme.primary.withOpacity(0.5),
+                              color: theme.colorScheme.primary.withValues(alpha: 0.5),
                             ),
                           ),
                         ),
@@ -361,8 +366,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         fontWeight: FontWeight.w700,
                         fontSize: 16.sp,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                     const VSpace8(),
                     Container(
@@ -371,7 +375,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         vertical: AppPadding.padding4,
                       ),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: AppRadius.border8,
                       ),
                       child: Row(
@@ -398,7 +402,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 size: 24.sp,
               ),
             ],

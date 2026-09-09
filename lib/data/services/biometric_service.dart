@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +19,9 @@ class BiometricService {
       final bool canAuthenticate = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
       return canAuthenticate;
     } on PlatformException catch (e) {
-      print('Error checking biometric availability: $e');
+      if (kDebugMode) {
+        debugPrint('Error checking biometric availability: $e');
+      }
       return false;
     }
   }
@@ -33,7 +36,9 @@ class BiometricService {
         ),
       );
     } on PlatformException catch (e) {
-      print('Error during biometric authentication: $e');
+      if (kDebugMode) {
+        debugPrint('Error during biometric authentication: $e');
+      }
       return false;
     }
   }

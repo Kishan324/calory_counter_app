@@ -12,16 +12,17 @@ import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_space.dart';
 import '../../core/utils/toast_helper.dart';
 import '../widgets/app_primary_button.dart';
+import '../widgets/app_back_button.dart';
 
 class FoodResultScreen extends StatelessWidget {
   final dynamic food;
   final String imagePath;
 
   const FoodResultScreen({
-    Key? key,
+    super.key,
     required this.food,
     required this.imagePath,
-  }) : super(key: key);
+  });
 
   String _formatFoodName(String name) {
     if (name.isEmpty) return name;
@@ -35,7 +36,6 @@ class FoodResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Extract details safely
     Map<String, dynamic> foodMap = {};
     try {
       foodMap = food.toJson();
@@ -70,7 +70,6 @@ class FoodResultScreen extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
-          // A: Background Image Header (Top 45% of screen)
           Positioned(
             top: 0,
             left: 0,
@@ -81,8 +80,6 @@ class FoodResultScreen extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-
-          // Image Gradient Overlay for legibility
           Positioned(
             top: 0,
             left: 0,
@@ -94,20 +91,17 @@ class FoodResultScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.black.withOpacity(0.4),
+                    AppColors.black.withValues(alpha: 0.4),
                     AppColors.transparent,
-                    AppColors.black.withOpacity(0.6),
+                    AppColors.black.withValues(alpha: 0.6),
                   ],
                   stops: const [0.0, 0.5, 1.0],
                 ),
               ),
             ),
           ),
-
-          // C: Main Content Screen (Anchored to fill the bottom area)
           Positioned(
-            top:
-                screenHeight * 0.45 - 32.h, // Overlaps the image slightly by 32px
+            top: screenHeight * 0.45 - 32.h,
             left: 0,
             right: 0,
             bottom: 0,
@@ -197,7 +191,7 @@ class FoodResultScreen extends StatelessWidget {
                                       Container(
                                         padding: EdgeInsets.all(AppPadding.padding4),
                                         decoration: BoxDecoration(
-                                          color: AppColors.white.withOpacity(0.2),
+                                          color: AppColors.white.withValues(alpha: 0.2),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
@@ -308,20 +302,9 @@ class FoodResultScreen extends StatelessWidget {
 
           // B: Top Section: Back Button
           Positioned(
-            top: MediaQuery.of(context).padding.top + 8.h,
+            top: MediaQuery.of(context).padding.top + 4.h,
             left: 8.w,
-            child: IconButton(
-              icon: Container(
-                padding: EdgeInsets.all(AppPadding.padding8),
-                decoration: BoxDecoration(
-                  color: AppColors.black.withOpacity(0.3),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded,
-                    color: AppColors.white, size: 20),
-              ),
-              onPressed: () => Get.back(),
-            ),
+            child: const AppBackButton(color: AppColors.white),
           ),
         ],
       ),
@@ -336,11 +319,11 @@ class FoodResultScreen extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: AppPadding.padding16, horizontal: AppPadding.padding4),
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
-              ? color.withOpacity(0.12)
-              : color.withOpacity(0.08),
+              ? color.withValues(alpha: 0.12)
+              : color.withValues(alpha: 0.08),
           borderRadius: AppRadius.border24,
           border: Border.all(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             width: 1.5,
           ),
         ),
@@ -348,25 +331,29 @@ class FoodResultScreen extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 20),
             const VSpace12(),
-            Text(
-              '${value.toStringAsFixed(1)}g',
-              style: GoogleFonts.inter(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w900,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '${value.toStringAsFixed(1)}g',
+                style: GoogleFonts.inter(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
             const VSpace4(),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.white54
-                    : AppColors.black54,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.white54
+                      : AppColors.black54,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

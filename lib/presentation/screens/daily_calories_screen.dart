@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -7,11 +8,12 @@ import '../../core/theme/app_padding.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_space.dart';
 import '../widgets/app_primary_button.dart';
+import '../widgets/app_back_button.dart';
 import '../../controllers/profile_controller.dart';
 
 /// Screen for updating target daily calorie allowance managed via GetX.
 class DailyCaloriesScreen extends StatefulWidget {
-  const DailyCaloriesScreen({Key? key}) : super(key: key);
+  const DailyCaloriesScreen({super.key});
 
   @override
   State<DailyCaloriesScreen> createState() => _DailyCaloriesScreenState();
@@ -58,11 +60,11 @@ class _DailyCaloriesScreenState extends State<DailyCaloriesScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(loc.dailyCalories, style: theme.textTheme.headlineMedium),
         backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
-        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -91,6 +93,7 @@ class _DailyCaloriesScreenState extends State<DailyCaloriesScreen> {
                 TextFormField(
                   controller: _caloriesController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
                   style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
                     labelText: loc.dailyCalories,
@@ -105,7 +108,7 @@ class _DailyCaloriesScreenState extends State<DailyCaloriesScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
-                        color: theme.colorScheme.onSurface.withOpacity(0.1),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(

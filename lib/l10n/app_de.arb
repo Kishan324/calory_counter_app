@@ -132,7 +132,12 @@
   "nutritionScoreText": "94/100 Ernährungsnote — Hervorragende Balance!",
   "totalMacros": "Gesamt-Makros",
   "hydrationTarget": "Ziel 2,5 l / 3,0 l — Weiterhin ausreichend trinken!",
-  "proteinAdvice": "Gleichmäßige Proteinaufnahme unterstützt die Muskelerholung."
+  "proteinAdvice": "Gleichmäßige Proteinaufnahme unterstützt die Muskelerholung.",
+  "waterIntake": "Wasseraufnahme",
+  "exportReport": "Bericht exportieren",
+  "reportExported": "Ernährungsbericht exportiert",
+  "streakSubtitle": "Erfasse deine täglichen Mahlzeiten für gesunde Gewohnheiten!",
+  "keepItUp": "Weiter so!"
 }
 
 

@@ -34,8 +34,8 @@ class CustomBottomNavBar extends StatelessWidget {
         borderRadius: AppRadius.border28,
         border: Border.all(
           color: isDark
-              ? AppColors.white.withOpacity(0.15)
-              : AppColors.white.withOpacity(0.25),
+              ? AppColors.white.withValues(alpha: 0.15)
+              : AppColors.white.withValues(alpha: 0.25),
           width: 2,
         ),
         boxShadow: AppShadows.header(isDark),
@@ -47,11 +47,13 @@ class CustomBottomNavBar extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: isDark
-                  ? AppColors.black.withOpacity(0.4)
-                  : AppColors.white.withOpacity(0.08),
+                  ? AppColors.black.withValues(alpha: 0.4)
+                  : AppColors.white.withValues(alpha: 0.08),
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppPadding.padding12, vertical: AppPadding.padding6),
+              padding: EdgeInsets.symmetric(
+                  horizontal: AppPadding.padding8,
+                  vertical: AppPadding.padding2),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -123,13 +125,14 @@ class _BottomNavItem extends StatelessWidget {
       child: SizedBox(
         width: 75.w,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppPadding.padding2, vertical: AppPadding.padding4),
+          padding: EdgeInsets.symmetric(
+              horizontal: AppPadding.padding2, vertical: AppPadding.padding2),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedScale(
-                scale: isSelected ? 1.15 : 1.0,
+                scale: isSelected ? 1.08 : 1.0,
                 duration: AppDurations.normal,
                 curve: Curves.easeOutBack,
                 child: AnimatedContainer(
@@ -155,11 +158,12 @@ class _BottomNavItem extends StatelessWidget {
                           color: textColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 10.sp),
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
               ),

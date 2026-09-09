@@ -18,8 +18,6 @@ class FoodModel {
   factory FoodModel.fromJson(Map<String, dynamic> json) {
     return FoodModel(
       name: json['food'] ?? '',
-
-      // 🔥 SAFE PARSING (VERY IMPORTANT)
       calories: (json['calories'] as num?)?.toDouble() ?? 0.0,
       protein: (json['protein'] as num?)?.toDouble() ?? 0.0,
       fat: (json['fat'] as num?)?.toDouble() ?? 0.0,

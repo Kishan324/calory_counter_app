@@ -10,6 +10,8 @@ import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_space.dart';
 
+import '../widgets/app_back_button.dart';
+
 /// Detailed view for an individual food consumption log entry.
 class HistoryDetailScreen extends StatelessWidget {
   final HistoryModel item;
@@ -32,9 +34,11 @@ class HistoryDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
+        title: Text(item.name, style: theme.textTheme.headlineMedium),
         backgroundColor: AppColors.transparent,
         elevation: 0,
-        title: const SizedBox(),
+        centerTitle: false,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -89,8 +93,8 @@ class HistoryDetailScreen extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          AppColors.black.withOpacity(0.05),
-                          AppColors.black.withOpacity(0.4),
+                          AppColors.black.withValues(alpha: 0.05),
+                          AppColors.black.withValues(alpha: 0.4),
                         ],
                       ),
                     ),
@@ -122,7 +126,7 @@ class HistoryDetailScreen extends StatelessWidget {
                       vertical: AppPadding.padding12,
                     ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: AppRadius.border16,
                     ),
                     child: Row(
@@ -165,7 +169,7 @@ class HistoryDetailScreen extends StatelessWidget {
                         _buildStatRow("Date Logged", dateStr, theme),
                         Divider(
                           height: 24.h,
-                          color: theme.colorScheme.outline.withOpacity(0.1),
+                          color: theme.colorScheme.outline.withValues(alpha: 0.1),
                         ),
                         _buildStatRow(
                           "Food Entry ID",
@@ -174,7 +178,7 @@ class HistoryDetailScreen extends StatelessWidget {
                         ),
                         Divider(
                           height: 24.h,
-                          color: theme.colorScheme.outline.withOpacity(0.1),
+                          color: theme.colorScheme.outline.withValues(alpha: 0.1),
                         ),
                         _buildStatRow(
                           "Source",

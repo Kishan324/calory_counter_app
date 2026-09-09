@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -7,11 +8,12 @@ import '../../core/theme/app_padding.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_space.dart';
 import '../widgets/app_primary_button.dart';
+import '../widgets/app_back_button.dart';
 import '../../controllers/profile_controller.dart';
 
 /// Screen for modifying target weight goal managed via GetX.
 class WeightGoalScreen extends StatefulWidget {
-  const WeightGoalScreen({Key? key}) : super(key: key);
+  const WeightGoalScreen({super.key});
 
   @override
   State<WeightGoalScreen> createState() => _WeightGoalScreenState();
@@ -58,11 +60,11 @@ class _WeightGoalScreenState extends State<WeightGoalScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(loc.weightGoal, style: theme.textTheme.headlineMedium),
         backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
-        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -92,6 +94,7 @@ class _WeightGoalScreenState extends State<WeightGoalScreen> {
                   controller: _weightController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
                   style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
                     labelText: loc.weightGoal,
@@ -106,7 +109,7 @@ class _WeightGoalScreenState extends State<WeightGoalScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.border16,
                       borderSide: BorderSide(
-                        color: theme.colorScheme.onSurface.withOpacity(0.1),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(

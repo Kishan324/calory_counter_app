@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/utils/toast_helper.dart';
 import '../data/local/shared_prefs_helper.dart';
 import '../data/repositories/auth_repository.dart';
 
+/// Provider managing authentication state, login, signup, and token persistence.
 class AuthProvider with ChangeNotifier {
   final AuthRepository _authRepository;
 
@@ -28,18 +28,15 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Initial load and Auto-login check
   Future<void> _loadAuthState() async {
     final token = await SharedPrefsHelper.getToken();
     if (token != null && token.isNotEmpty) {
       _isLoggedIn = true;
       _userEmail = await SharedPrefsHelper.getUserEmail();
-      // Assume a backend token validation happens here if needed.
       notifyListeners();
     }
   }
 
-  /// Real API Login Method
   Future<bool> login({required String email, required String password}) async {
     if (email.isEmpty || password.isEmpty) {
       ToastHelper.showError("Email and password cannot be empty");
@@ -52,28 +49,10 @@ class AuthProvider with ChangeNotifier {
       final response =
           await _authRepository.login(email.trim(), password.trim());
 
-      if (response['data']['token'] != null) {
+      if (response['data'] != null && response['data']['token'] != null) {
         final String token = response['data']['token'].toString();
-        debugPrint("==== DEBUG PHASE 1: TOKEN RECEIVED ====");
-        debugPrint("API RESPONSE TOKEN: $token");
 
-        // Start: Fixed Token Persistence
-        final prefs = await SharedPreferences.getInstance();
-        debugPrint("==== DEBUG PHASE 2: BEFORE SAVE ====");
-        debugPrint("PREPARED KEY: 'auth_token' | VALUE: $token");
-
-        final isSaved = await prefs.setString('auth_token', token);
-        
-        debugPrint("==== DEBUG PHASE 3: AFTER SAVE ====");
-        debugPrint("PREFS.SET_STRING RETURNED SUCCESS?: $isSaved");
-
-        // Verify Data Persistence Instantly
-        final verificationToken = prefs.getString('auth_token');
-        debugPrint("==== DEBUG VERIFICATION ====");
-        debugPrint("READ IMMEDIATELY AFTER SAVE: $verificationToken");
-        // End: Fixed Token Persistence
-
-        // Save auxiliary user state
+        await SharedPrefsHelper.saveToken(token);
         await SharedPrefsHelper.saveUserEmail(email);
 
         _isLoggedIn = true;
@@ -83,11 +62,7 @@ class AuthProvider with ChangeNotifier {
         _setLoading(false);
         return true;
       } else {
-        debugPrint("==== DEBUG FAILURE ====");
-        debugPrint("response['token'] WAS NULL!");
-        debugPrint("FULL RESPONSE: $response");
-        
-        ToastHelper.showError(response['data']['message'] ?? "Login failed");
+        ToastHelper.showError(response['data']?['message'] ?? "Login failed");
         _setLoading(false);
         return false;
       }
@@ -98,7 +73,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Real API Signup Method
   Future<bool> signup({
     required String name,
     required String email,
@@ -126,11 +100,9 @@ class AuthProvider with ChangeNotifier {
       final response = await _authRepository.signup(
           name.trim(), email.trim(), password, confirmPassword);
 
-      // Relax validation to check for token directly
       if (response['token'] != null || response['success'] == true) {
         final token = response['token'];
         
-        // Auto-login on successful registration if token provided
         if (token != null) {
           await SharedPrefsHelper.saveToken(token);
           await SharedPrefsHelper.saveUserEmail(email);
@@ -154,7 +126,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Logout Method
   Future<void> logout() async {
     await SharedPrefsHelper.clearAuth();
     _isLoggedIn = false;

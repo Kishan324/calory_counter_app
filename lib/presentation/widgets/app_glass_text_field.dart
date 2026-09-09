@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_padding.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_space.dart';
@@ -14,6 +15,7 @@ class AppGlassTextField extends StatelessWidget {
   final VoidCallback? onToggleVisibility;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
 
   const AppGlassTextField({
     super.key,
@@ -25,6 +27,7 @@ class AppGlassTextField extends StatelessWidget {
     this.onToggleVisibility,
     this.keyboardType = TextInputType.text,
     this.validator,
+    this.inputFormatters,
   });
 
   @override
@@ -48,14 +51,15 @@ class AppGlassTextField extends StatelessWidget {
               obscureText: obscureText,
               keyboardType: keyboardType,
               validator: validator,
+              inputFormatters: inputFormatters,
               style: theme.textTheme.bodyLarge,
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: theme.textTheme.bodyLarge!.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.3),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                 ),
                 filled: true,
-                fillColor: theme.colorScheme.surface.withOpacity(0.1),
+                fillColor: theme.colorScheme.surface.withValues(alpha: 0.1),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: AppPadding.padding20,
                   vertical: AppPadding.padding18,
@@ -63,13 +67,13 @@ class AppGlassTextField extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: AppRadius.border16,
                   borderSide: BorderSide(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: AppRadius.border16,
                   borderSide: BorderSide(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -82,7 +86,7 @@ class AppGlassTextField extends StatelessWidget {
                           obscureText
                               ? Icons.visibility_off_rounded
                               : Icons.visibility_rounded,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                         onPressed: onToggleVisibility,
                       )

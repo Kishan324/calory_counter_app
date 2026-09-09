@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,12 +11,19 @@ class EditProfileController extends GetxController {
   late final TextEditingController nameController;
 
   final RxnString localImagePath = RxnString();
+  final Rxn<DateTime> selectedBirthDate = Rxn<DateTime>();
 
   @override
   void onInit() {
     super.onInit();
     final profileCtrl = Get.find<ProfileController>();
     nameController = TextEditingController(text: profileCtrl.name ?? '');
+    selectedBirthDate.value = profileCtrl.birthDate;
+  }
+
+  void setBirthDate(DateTime date) {
+    selectedBirthDate.value = date;
+    update();
   }
 
   Future<void> pickImage(ImageSource source) async {
@@ -32,7 +40,9 @@ class EditProfileController extends GetxController {
         localImagePath.value = pickedFile.path;
       }
     } catch (e) {
-      debugPrint("Error picking image: $e");
+      if (kDebugMode) {
+        debugPrint("Error picking image: $e");
+      }
     }
   }
 
@@ -50,6 +60,7 @@ class EditProfileController extends GetxController {
     await profileCtrl.updateProfileDetails(
       name: name,
       imagePath: localImagePath.value,
+      birthDate: selectedBirthDate.value,
       successMessage: loc.profileUpdated,
     );
   }

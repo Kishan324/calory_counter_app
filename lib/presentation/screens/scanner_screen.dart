@@ -16,8 +16,32 @@ import '../../controllers/scanner_controller.dart';
 import 'food_result_screen.dart';
 
 /// Camera food scanner screen managed reactively via GetX ScannerController.
-class ScannerScreen extends StatelessWidget {
-  const ScannerScreen({Key? key}) : super(key: key);
+class ScannerScreen extends StatefulWidget {
+  const ScannerScreen({super.key});
+
+  @override
+  State<ScannerScreen> createState() => _ScannerScreenState();
+}
+
+class _ScannerScreenState extends State<ScannerScreen> {
+  late final ScannerController scannerCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    if (Get.isRegistered<ScannerController>()) {
+      Get.delete<ScannerController>();
+    }
+    scannerCtrl = Get.put(ScannerController());
+  }
+
+  @override
+  void dispose() {
+    if (Get.isRegistered<ScannerController>()) {
+      Get.delete<ScannerController>();
+    }
+    super.dispose();
+  }
 
   void _handleScan(BuildContext context, ScannerController scannerCtrl) async {
     try {
@@ -40,7 +64,7 @@ class ScannerScreen extends StatelessWidget {
         'Scan Error',
         'Error scanning food item: $e',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error.withOpacity(0.8),
+        backgroundColor: AppColors.error.withValues(alpha: 0.8),
         colorText: AppColors.white,
       );
     }
@@ -48,7 +72,6 @@ class ScannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scannerCtrl = Get.put(ScannerController());
 
     return Scaffold(
       backgroundColor: AppColors.black,
@@ -57,6 +80,7 @@ class ScannerScreen extends StatelessWidget {
           Obx(() {
             final path = scannerCtrl.capturedImagePath.value;
             final isInit = scannerCtrl.isCameraInitialized.value;
+            final isLoading = scannerCtrl.isCameraLoading.value;
 
             if (path != null) {
               return Positioned.fill(
@@ -65,49 +89,110 @@ class ScannerScreen extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               );
-            } else if (isInit && scannerCtrl.cameraController != null) {
+            } else if (isInit &&
+                scannerCtrl.cameraController != null &&
+                scannerCtrl.cameraController!.value.isInitialized) {
               return Positioned.fill(
                 child: CameraPreview(scannerCtrl.cameraController!),
               );
-            } else {
+            } else if (isLoading) {
               return const Center(
                 child: CircularProgressIndicator(color: AppColors.white),
               );
-            }
-          }),
-          Obx(() {
-            if (!scannerCtrl.isCameraInitialized.value) {
-              return const SizedBox.shrink();
-            }
-
-            return Positioned.fill(
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(AppPadding.padding16),
-                      child: Row(
+            } else {
+              final error = scannerCtrl.cameraError.value;
+              return Positioned.fill(
+                child: Container(
+                  color: AppColors.black,
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 32.w),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.close,
-                                color: AppColors.white, size: 28),
-                            onPressed: () => Get.back(),
+                          Icon(
+                            Icons.no_photography_rounded,
+                            size: 64.sp,
+                            color: AppColors.white.withValues(alpha: 0.4),
                           ),
-                          Expanded(
-                            child: Text(
-                              'Scan Food',
-                              textAlign: TextAlign.center,
+                          const VSpace16(),
+                          Text(
+                            error != null && error.isNotEmpty
+                                ? error
+                                : 'Camera unavailable',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.sora(
+                              color: AppColors.white.withValues(alpha: 0.6),
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const VSpace24(),
+                          TextButton.icon(
+                            onPressed: () => scannerCtrl.initializeCamera(),
+                            icon: const Icon(Icons.refresh_rounded,
+                                color: AppColors.white),
+                            label: Text(
+                              'Retry',
                               style: GoogleFonts.sora(
                                 color: AppColors.white,
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                          const HSpace48(),
                         ],
                       ),
                     ),
+                  ),
+                ),
+              );
+            }
+          }),
+          Positioned.fill(
+            child: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(AppPadding.padding16),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close,
+                              color: AppColors.white, size: 28),
+                          onPressed: () => Get.back(),
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Scan Food',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.sora(
+                              color: AppColors.white,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.photo_library_rounded,
+                              color: AppColors.white, size: 26),
+                          onPressed: () async {
+                            final result = await scannerCtrl.pickFromGallery();
+                            if (result != null && context.mounted) {
+                              await Get.to(
+                                () => FoodResultScreen(
+                                  food: result,
+                                  imagePath: scannerCtrl.capturedImagePath.value!,
+                                ),
+                                transition: Transition.fadeIn,
+                                duration: AppDurations.medium,
+                              );
+                              scannerCtrl.resetCapturedImage();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                     const Spacer(),
                     SizedBox(
                       width: 250.w,
@@ -117,7 +202,7 @@ class ScannerScreen extends StatelessWidget {
                           Container(
                             decoration: BoxDecoration(
                               border: Border.all(
-                                  color: AppColors.white.withOpacity(0.5), width: 2),
+                                  color: AppColors.white.withValues(alpha: 0.5), width: 2),
                               borderRadius: AppRadius.border24,
                             ),
                           ),
@@ -184,8 +269,7 @@ class ScannerScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            );
-          }),
+            ),
           Obx(() {
             if (scannerCtrl.isScanning.value &&
                 scannerCtrl.capturedImagePath.value != null) {
@@ -194,7 +278,7 @@ class ScannerScreen extends StatelessWidget {
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
                     child: Container(
-                      color: AppColors.black.withOpacity(0.55),
+                      color: AppColors.black.withValues(alpha: 0.55),
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,

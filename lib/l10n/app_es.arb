@@ -124,7 +124,12 @@
   "nutritionScoreText": "Grado 94/100 — ¡Excelente balance!",
   "totalMacros": "Macros Totales",
   "hydrationTarget": "Meta 2.5L / 3.0L — ¡Mantén el consumo de agua!",
-  "proteinAdvice": "Una distribución constante de proteínas apoya la recuperación muscular."
+  "proteinAdvice": "Una distribución constante de proteínas apoya la recuperación muscular.",
+  "waterIntake": "Consumo de Agua",
+  "exportReport": "Exportar Informe",
+  "reportExported": "Informe Nutricional Exportado",
+  "streakSubtitle": "¡Registra tus comidas diarias para crear hábitos saludables!",
+  "keepItUp": "¡Sigue así!"
 }
 
 

@@ -3,12 +3,14 @@ class UserProfile {
   final String? profileImage;
   final double? weightGoal;
   final int? dailyCalories;
+  final DateTime? birthDate;
 
   UserProfile({
     this.name,
     this.profileImage,
     this.weightGoal,
     this.dailyCalories,
+    this.birthDate,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -35,11 +37,21 @@ class UserProfile {
         ? profile['daily_calories']
         : data['daily_calories'];
 
+    final dynamic birthDateRaw = profile != null
+        ? profile['birth_date']
+        : data['birth_date'];
+
+    DateTime? parsedBirthDate;
+    if (birthDateRaw != null) {
+      parsedBirthDate = DateTime.tryParse(birthDateRaw.toString());
+    }
+
     return UserProfile(
       name: name,
       profileImage: profileImage,
       weightGoal: weightGoalRaw != null ? double.tryParse(weightGoalRaw.toString()) : null,
       dailyCalories: dailyCaloriesRaw != null ? int.tryParse(dailyCaloriesRaw.toString()) : null,
+      birthDate: parsedBirthDate,
     );
   }
 
@@ -49,6 +61,7 @@ class UserProfile {
       'profile_image': profileImage,
       'weight_goal': weightGoal,
       'daily_calories': dailyCalories,
+      'birth_date': birthDate?.toIso8601String(),
     };
   }
 }

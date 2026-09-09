@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_back_button.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/analytics_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_durations.dart';
 import '../../core/theme/app_padding.dart';
@@ -11,15 +13,8 @@ import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_space.dart';
 
-class AnalyticsDetailScreen extends StatefulWidget {
-  const AnalyticsDetailScreen({Key? key}) : super(key: key);
-
-  @override
-  State<AnalyticsDetailScreen> createState() => _AnalyticsDetailScreenState();
-}
-
-class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
-  int _touchedPieIndex = -1;
+class AnalyticsDetailScreen extends StatelessWidget {
+  const AnalyticsDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +29,17 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
         backgroundColor: AppColors.transparent,
         elevation: 0,
         centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => Get.back(),
-        ),
+        leading: const AppBackButton(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: loc.exportReport,
+            onPressed: () {
+              Get.find<AnalyticsController>().exportNutritionReport(context);
+            },
+          ),
+          const HSpace8(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -208,8 +210,8 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [
-                                Color(0xFFFFE082), // Amber Gold Light
-                                Color(0xFFFF8F00), // Deep Golden Amber
+                                Color(0xFFFFE082),
+                                Color(0xFFFF8F00),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -382,15 +384,16 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
           Icon(icon, color: iconColor, size: 14.sp),
           const HSpace4(),
           Flexible(
-            child: Text(
-              label,
-              style: theme.textTheme.labelSmall!.copyWith(
-                color: AppColors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 11.sp,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: theme.textTheme.labelSmall!.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 11.sp,
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -420,62 +423,65 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                PieChart(
-                  PieChartData(
-                    pieTouchData: PieTouchData(
-                      touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                        if (!mounted) return;
-                        setState(() {
+                Obx(() {
+                  final controller = Get.find<AnalyticsController>();
+                  final touchedPieIndex = controller.touchedPieIndex.value;
+
+                  return PieChart(
+                    PieChartData(
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
                           if (!event.isInterestedForInteractions ||
                               pieTouchResponse == null ||
                               pieTouchResponse.touchedSection == null) {
-                            _touchedPieIndex = -1;
+                            controller.setTouchedPieIndex(-1);
                             return;
                           }
-                          _touchedPieIndex = pieTouchResponse
-                              .touchedSection!.touchedSectionIndex;
-                        });
-                      },
+                          controller.setTouchedPieIndex(
+                            pieTouchResponse.touchedSection!.touchedSectionIndex,
+                          );
+                        },
+                      ),
+                      borderData: FlBorderData(show: false),
+                      sectionsSpace: 4,
+                      centerSpaceRadius: 60.r,
+                      sections: [
+                        PieChartSectionData(
+                          color: AppColors.proteinRed,
+                          value: 30,
+                          title: '30%',
+                          radius: touchedPieIndex == 0 ? 32.r : 26.r,
+                          titleStyle: theme.textTheme.labelMedium!.copyWith(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        PieChartSectionData(
+                          color: AppColors.carbsBlue,
+                          value: 50,
+                          title: '50%',
+                          radius: touchedPieIndex == 1 ? 32.r : 26.r,
+                          titleStyle: theme.textTheme.labelMedium!.copyWith(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        PieChartSectionData(
+                          color: AppColors.fatsGreen,
+                          value: 20,
+                          title: '20%',
+                          radius: touchedPieIndex == 2 ? 32.r : 26.r,
+                          titleStyle: theme.textTheme.labelMedium!.copyWith(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                    borderData: FlBorderData(show: false),
-                    sectionsSpace: 4,
-                    centerSpaceRadius: 60.r,
-                    sections: [
-                      PieChartSectionData(
-                        color: AppColors.proteinRed,
-                        value: 30,
-                        title: '30%',
-                        radius: _touchedPieIndex == 0 ? 32.r : 26.r,
-                        titleStyle: theme.textTheme.labelMedium!.copyWith(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      PieChartSectionData(
-                        color: AppColors.carbsBlue,
-                        value: 50,
-                        title: '50%',
-                        radius: _touchedPieIndex == 1 ? 32.r : 26.r,
-                        titleStyle: theme.textTheme.labelMedium!.copyWith(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      PieChartSectionData(
-                        color: AppColors.fatsGreen,
-                        value: 20,
-                        title: '20%',
-                        radius: _touchedPieIndex == 2 ? 32.r : 26.r,
-                        titleStyle: theme.textTheme.labelMedium!.copyWith(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  duration: AppDurations.normal,
-                  curve: Curves.easeOutCubic,
-                ),
+                    duration: AppDurations.normal,
+                    curve: Curves.easeOutCubic,
+                  );
+                }),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -486,11 +492,12 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
                         fontSize: 20.sp,
                       ),
                     ),
-                    Text(
-                      loc.totalMacros,
-                      style: theme.textTheme.labelMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        loc.totalMacros,
+                        style: theme.textTheme.labelMedium,
+                      ),
                     ),
                   ],
                 ),
@@ -542,23 +549,25 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
             ),
             const HSpace6(),
             Flexible(
-              child: Text(
-                title,
-                style: theme.textTheme.labelMedium!.copyWith(
-                  fontWeight: FontWeight.bold,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  title,
+                  style: theme.textTheme.labelMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
         const VSpace4(),
-        Text(
-          value,
-          style: theme.textTheme.labelMedium,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: theme.textTheme.labelMedium,
+          ),
         ),
       ],
     );
@@ -608,20 +617,22 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Flexible(
-              child: Text(
-                label,
-                style: theme.textTheme.titleMedium!.copyWith(
-                  fontWeight: FontWeight.bold,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  label,
+                  style: theme.textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
             const HSpace8(),
             Text(
               calories,
               style: theme.textTheme.titleMedium!.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.75),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
               ),
             ),
           ],
@@ -632,7 +643,7 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
           child: LinearProgressIndicator(
             value: ratio,
             minHeight: 8.h,
-            backgroundColor: color.withOpacity(0.15),
+            backgroundColor: color.withValues(alpha: 0.15),
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
@@ -691,7 +702,7 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
           Container(
             padding: EdgeInsets.all(10.w),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -715,7 +726,7 @@ class _AnalyticsDetailScreenState extends State<AnalyticsDetailScreen> {
                 Text(
                   subtitle,
                   style: theme.textTheme.bodyMedium!.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],

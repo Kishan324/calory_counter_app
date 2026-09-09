@@ -19,7 +19,7 @@ import '../../controllers/main_controller.dart';
 
 /// Shell screen housing main navigation tabs and biometric security lock.
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -145,7 +145,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
               child: Container(
-                color: AppColors.black.withOpacity(0.5),
+                color: AppColors.black.withValues(alpha: 0.5),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

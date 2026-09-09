@@ -156,7 +156,12 @@
   "nutritionScoreText": "94/100 Nutrition Grade — Outstanding balance!",
   "totalMacros": "Total Macros",
   "hydrationTarget": "2.5L / 3.0L Target — Keep up the water intake!",
-  "proteinAdvice": "Consistent protein distribution supports muscle recovery."
+  "proteinAdvice": "Consistent protein distribution supports muscle recovery.",
+  "waterIntake": "Water Intake",
+  "exportReport": "Export Report",
+  "reportExported": "Nutrition Report Exported",
+  "streakSubtitle": "Log your daily meals to build healthy long-term habits!",
+  "keepItUp": "Keep It Up!"
 }
 
 

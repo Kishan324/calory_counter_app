@@ -27,7 +27,7 @@ import '../../data/services/biometric_service.dart';
 
 /// User profile configuration screen with settings, goals, preferences, and security lock options.
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -201,7 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Divider(
                     height: 1,
                     thickness: 1,
-                    color: theme.colorScheme.onSurface.withOpacity(0.1),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                     indent: 56.w,
                     endIndent: 20.w,
                   ),
@@ -229,9 +229,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: AppPadding.padding20),
         decoration: BoxDecoration(
-          color: theme.colorScheme.error.withOpacity(0.1),
+          color: theme.colorScheme.error.withValues(alpha: 0.1),
           borderRadius: AppRadius.border24,
-          border: Border.all(color: theme.colorScheme.error.withOpacity(0.2)),
+          border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.2)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -258,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: "Logout",
-      barrierColor: AppColors.black.withOpacity(0.4),
+      barrierColor: AppColors.black.withValues(alpha: 0.4),
       transitionDuration: AppDurations.normal,
       pageBuilder: (_, __, ___) {
         return Center(
@@ -271,10 +271,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Container(
                   padding: EdgeInsets.all(AppPadding.padding24),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withOpacity(0.7),
+                    color: theme.colorScheme.surface.withValues(alpha: 0.7),
                     borderRadius: AppRadius.border24,
                     border: Border.all(
-                      color: theme.colorScheme.primary.withOpacity(0.2),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Column(
@@ -284,7 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.all(AppPadding.padding14),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: theme.colorScheme.error.withOpacity(0.1),
+                          color: theme.colorScheme.error.withValues(alpha: 0.1),
                         ),
                         child: Icon(
                           Icons.logout_rounded,
@@ -305,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         loc.logoutConfirmMessage,
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium!.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                       const VSpace24(),
@@ -318,7 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 padding: EdgeInsets.symmetric(vertical: AppPadding.padding14),
                                 side: BorderSide(
                                   color: theme.colorScheme.primary
-                                      .withOpacity(0.3),
+                                      .withValues(alpha: 0.3),
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: AppRadius.border14,
@@ -423,7 +423,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: AppSizes.avatarSizeMd,
               decoration: BoxDecoration(
                 color:
-                    theme.colorScheme.primary.withOpacity(isDark ? 0.2 : 0.1),
+                    theme.colorScheme.primary.withValues(alpha: isDark ? 0.2 : 0.1),
                 shape: BoxShape.circle,
                 image: hasImage
                     ? DecorationImage(
@@ -450,19 +450,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    profileController.name ?? loc.name,
-                    style: theme.textTheme.headlineMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      profileController.name ?? loc.name,
+                      style: theme.textTheme.headlineMedium,
+                    ),
                   ),
                   const VSpace4(),
-                  Text(
-                    loc.premiumMember,
-                    style: theme.textTheme.bodySmall!
-                        .copyWith(color: theme.colorScheme.secondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      loc.premiumMember,
+                      style: theme.textTheme.bodySmall!
+                          .copyWith(color: theme.colorScheme.secondary),
+                    ),
                   ),
                 ],
               ),
@@ -470,7 +474,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: EdgeInsets.all(AppPadding.padding8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withOpacity(0.08),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.edit_rounded,
@@ -512,7 +516,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           secondary: Container(
             padding: EdgeInsets.all(AppPadding.padding8),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -550,21 +554,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Expanded(
                   child: Text(
                     title,
-                    style: theme.textTheme.bodyLarge,
+                    style: theme.textTheme.bodyLarge!.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Text(
-                  value,
-                  style: theme.textTheme.titleMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
                 const HSpace8(),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 140.w),
+                  child: Text(
+                    value,
+                    style: theme.textTheme.bodyMedium!.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.end,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const HSpace6(),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.35),
                   size: 14.sp,
                 ),
               ],
@@ -574,7 +588,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Divider(
               height: 1,
               thickness: 1,
-              color: theme.colorScheme.onSurface.withOpacity(0.1),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
               indent: 56.w,
               endIndent: 20.w,
             ),

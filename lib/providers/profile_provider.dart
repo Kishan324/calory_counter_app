@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../data/models/user_profile.dart';
 import '../data/repositories/profile_repository.dart';
 import '../core/utils/toast_helper.dart';
 
+/// Provider managing user profile state and target goal updates.
 class ProfileProvider with ChangeNotifier {
   final ProfileRepository _profileRepository;
 
@@ -14,7 +15,6 @@ class ProfileProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
 
-  // Convenience getters
   String? get name => _profile?.name;
   String? get profileImageUrl => _profile?.profileImage;
   double? get weightGoal => _profile?.weightGoal;
@@ -41,7 +41,9 @@ class ProfileProvider with ChangeNotifier {
     try {
       _profile = await _profileRepository.getProfile();
     } catch (e) {
-      debugPrint("Error fetching profile: $e");
+      if (kDebugMode) {
+        debugPrint("Error fetching profile: $e");
+      }
     } finally {
       if (!silent) {
         _setLoading(false);

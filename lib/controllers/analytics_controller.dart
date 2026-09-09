@@ -1,8 +1,12 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get/get.dart';
+import '../core/utils/toast_helper.dart';
 
 /// GetX Controller for managing fitness intelligence analytics, health scores, and macro progress.
 class AnalyticsController extends GetxController {
-  final RxInt selectedTimeframe = 0.obs; // 0 = Weekly, 1 = Monthly
+  final RxInt selectedTimeframe = 0.obs;
+  final RxInt touchedPieIndex = (-1).obs;
 
   final RxDouble avgCalories = 1850.0.obs;
   final RxDouble maxCalorieLimit = 2500.0.obs;
@@ -54,6 +58,22 @@ class AnalyticsController extends GetxController {
 
   void updateWeeklyData(List<double> newData) {
     weeklyCalorieData.value = newData;
+  }
+
+  void setTouchedPieIndex(int index) {
+    touchedPieIndex.value = index;
+  }
+
+  void exportNutritionReport(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final reportTitle = loc?.reportExported ?? 'Nutrition Report Exported';
+    final reportMessage =
+        '${loc?.weeklyProgress ?? "Weekly Progress"}: ${avgCalories.value.toInt()} kcal/day | Protein: ${proteinAvg.value} | Carbs: ${carbsAvg.value} | Fats: ${fatsAvg.value}';
+
+    ToastHelper.showSuccess(
+      reportMessage,
+      title: reportTitle,
+    );
   }
 }
 
